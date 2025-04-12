@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="background_default">#0A0A0A</color>
+    <color name="gray_900">#1A1A1A</color>
+    <color name="gray_800">#1F1F1F</color>
+    <color name="gray_400">#878787</color>
+    <color name="gray_100">#A1A1A1</color>
+
+    <!-- Tailwind Blue Scale -->
+    <color name="blue_50">#eff6ff</color>
+    <color name="blue_100">#dbeafe</color>
+    <color name="blue_200">#bfdbfe</color>
+    <color name="blue_300">#a3cfff</color>
+    <color name="blue_400">#60a5fa</color> <!-- Already added above -->
+    <color name="blue_500">#3b82f6</color> <!-- Same as previous blue_400 -->
+    <color name="blue_600">#2563eb</color> <!-- Already added above -->
+    <color name="blue_700">#173da6</color>
+    <color name="blue_800">#1a3478</color>
+    <color name="blue_900">#14204a</color>
+</resources>

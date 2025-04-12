@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "635106063986",
+    "firebase_url": "https://mychat-e718b-default-rtdb.firebaseio.com",
+    "project_id": "mychat-e718b",
+    "storage_bucket": "mychat-e718b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:635106063986:android:2fa8e1731c63bf363334eb",
+        "android_client_info": {
+          "package_name": "com.example.nexus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZu8dOQfar_AXXhSZyIlrJZ9YWfKmCRJc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
