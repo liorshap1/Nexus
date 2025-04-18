@@ -54,4 +54,8 @@
     <string name="family_name">Family name</string>
     <string name="welcome_to_mychat">Welcome to MyChat!</string>
     <string name="hello_there">Hello there!</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="create_an_account">Create an account</string>
+    <string name="create_account">Create account</string>
+    <string name="submit">Submit</string>
 </resources>

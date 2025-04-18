@@ -15,58 +15,24 @@
  */
 package com.example.nexus.core;
 
-public class User {
-    private String firstName;
-    private String secondName;
-    private String email;
-    private String profilePicture;
-    private String uid;
+import androidx.annotation.NonNull;
 
-    public User(String firstName, String secondName, String email, String profilePicture, String uid) {
-        this.firstName = firstName;
-        this.secondName = secondName;
-        this.email = email;
-        this.profilePicture = profilePicture;
-        this.uid = uid;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getSecondName() {
-        return secondName;
-    }
-
-    public void setSecondName(String secondName) {
-        this.secondName = secondName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
+public class User extends BaseUser {
+  /**
+   * Constructs a new BaseUser.
+   *
+   * @param uid The user's unique ID.
+   * @param firstName The user's first name.
+   * @param secondName The user's second name.
+   * @param email The user's email address.
+   * @param profilePicture The URL or path of the user's profile picture.
+   */
+  public User(
+      @NonNull String uid,
+      @NonNull String firstName,
+      @NonNull String secondName,
+      @NonNull String email,
+      String profilePicture) {
+    super(uid, firstName, secondName, email, profilePicture);
+  }
 }

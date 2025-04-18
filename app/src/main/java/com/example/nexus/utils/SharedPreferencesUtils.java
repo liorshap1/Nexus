@@ -21,15 +21,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public class SharedPreferencesUtils {
-    private static final String PREFS_NAME = "NexusPrefs";
+  private static final String PREFS_NAME = "NexusPrefs";
 
-    public static void insertData(Context context, String key, String data) {
-        SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        preferences.edit().putString(key, data).apply();
-    }
+  public static void insertData(Context context, String key, String data) {
+    SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+    preferences.edit().putString(key, data).apply();
+  }
 
-    public static String getDataByKey(Context context, String key) {
-        SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        return preferences.getString(key, null);
-    }
+  public static String getDataByKey(Context context, String key) {
+    SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+    return preferences.getString(key, null);
+  }
 }

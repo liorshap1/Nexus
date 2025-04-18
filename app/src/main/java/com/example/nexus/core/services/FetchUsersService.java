@@ -19,135 +19,157 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-
+import androidx.annotation.Nullable;
 import com.example.nexus.Constants;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.User;
+import com.example.nexus.utils.SharedPreferencesUtils;
 import com.google.firebase.firestore.FirebaseFirestore;
-
+import com.google.gson.Gson;
+import dagger.hilt.android.AndroidEntryPoint;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.inject.Inject;
-
-import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class FetchUsersService extends Service implements IFetchUsersService {
+  private final Queue<String> userIdQueue = new ConcurrentLinkedQueue<>();
+  private final List<User> fetchedUsers = new CopyOnWriteArrayList<>();
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+  private final IBinder binder = new FetchUsersBinder();
+  private boolean isServiceRunning = false;
+  @Inject FirebaseFirestore firebaseFirestore;
+  @Inject AppLogger logger;
 
-    private final Queue<String> userIdQueue = new ConcurrentLinkedQueue<>();
-    private final List<User> fetchedUsers = new CopyOnWriteArrayList<>();
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private final IBinder binder = new FetchUsersBinder();
-    @Inject
-    AppLogger logger;
-    @Inject
-    FirebaseFirestore firestore;
-    private volatile boolean isServiceRunning = false;
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    logger.i("Service started");
+  }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        isServiceRunning = true;
-        startFetchingLoop();
-        logger.i("FetchUsersService created");
+  @Override
+  public int onStartCommand(Intent intent, int flags, int startId) {
+    List<String> userUidsList = intent.getStringArrayListExtra(Constants.USERS_KEY);
+    if (userUidsList != null && !userUidsList.isEmpty()) {
+      userUidsList.forEach(this::enqueueUser);
+      logger.i("Received users to enqueue");
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        List<String> userIds = intent.getStringArrayListExtra("user_ids");
-        if (userIds != null) {
-            userIds.forEach(this::enqueueUser);
-            logger.i("Received " + userIds.size() + " users to enqueue");
-        } else {
-            logger.w("No user IDs received");
-        }
-        return START_STICKY;
+    isServiceRunning = true;
+    return START_STICKY;
+  }
+
+  @Nullable
+  @Override
+  public IBinder onBind(Intent intent) {
+    return binder;
+  }
+
+  @Override
+  public void enqueueUser(String uid) {
+    if (uid != null && !uid.isEmpty()) {
+      userIdQueue.add(uid);
+    } else {
+      logger.d("enqueueUser::empty_uid");
+    }
+  }
+
+  @Override
+  public void fetchUser(String uid) {
+    firebaseFirestore
+        .collection(Constants.Firestore.USERS_COLLECTION)
+        .document(uid)
+        .get()
+        .addOnSuccessListener(
+            documentSnapshot -> {
+              String firstName = documentSnapshot.getString(Constants.UserFields.FIRST_NAME);
+              String secondName = documentSnapshot.getString(Constants.UserFields.SECOND_NAME);
+              String email = documentSnapshot.getString(Constants.UserFields.EMAIL);
+              String profilePicture =
+                  documentSnapshot.getString(Constants.UserFields.PROFILE_PICTURE);
+              if (firstName == null || secondName == null || email == null) {
+                logger.w("Missing user fields for UID: " + uid);
+                return;
+              }
+
+              User user = new User(uid, firstName, secondName, email, profilePicture);
+              Gson json = new Gson();
+
+              String userToJson = json.toJson(user);
+              SharedPreferencesUtils.insertData(getApplicationContext(), "user_" + uid, userToJson);
+              fetchedUsers.add(user);
+            })
+        .addOnFailureListener(e -> logger.e("Failed to fetch user: " + e.getMessage(), e));
+  }
+
+  @Override
+  public void fetchUsers() {
+    while (!userIdQueue.isEmpty() && isServiceRunning) {
+      String userUid = userIdQueue.poll();
+      if (userUid != null && !userUid.isEmpty()) {
+        fetchUser(userUid);
+      }
+    }
+  }
+
+  @Override
+  public List<User> getFetchedUsers() {
+    return fetchedUsers;
+  }
+
+  @Override
+  public User getUser(String uid) {
+    return null;
+  }
+
+  @Override
+  public boolean isUserFetched(String uid) {
+    Set<String> uidSet = new HashSet<>();
+    for (User user : fetchedUsers) {
+      uidSet.add(user.getUid());
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        logger.success("FetchUsersService bound");
-        return binder;
-    }
+    return uidSet.contains(uid);
+  }
 
-    @Override
-    public void enqueueUser(String uid) {
-        if (uid != null && !uid.isEmpty()) {
-            userIdQueue.add(uid);
-        } else {
-            logger.w("Attempted to enqueue null or empty UID");
-        }
-    }
+  @Override
+  public void addFetchListener(FetchListener listener) {
+    executorService.execute(
+        () -> {
+          while (isServiceRunning && !userIdQueue.isEmpty()) {
+            fetchUsers();
+          }
 
-    @Override
-    public List<User> getFetchedUsers() {
-        return fetchedUsers;
-    }
+          if (userIdQueue.isEmpty()) {
+            try {
+              Thread.sleep(500);
+            } catch (InterruptedException e) {
+              logger.e(e.getMessage(), e.getCause());
+            }
+          }
+        });
+  }
 
-    private void startFetchingLoop() {
-        executorService.execute(
-                () -> {
-                    while (isServiceRunning) {
-                        String userUid = userIdQueue.poll();
+  @Override
+  public void clear() {
+    userIdQueue.clear();
+    ;
+  }
 
-                        if (userUid != null) {
-                            fetchSingleUser(userUid);
-                        } else {
-                            try {
-                                Thread.sleep(500); // Wait a bit before polling again
-                            } catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
-                                logger.e("Fetching thread interrupted", e);
-                            }
-                        }
-                    }
-                });
-    }
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+  }
 
-    private void fetchSingleUser(String uid) {
-        firestore
-                .collection(Constants.Firestore.USERS_COLLECTION)
-                .document(uid)
-                .get()
-                .addOnSuccessListener(
-                        docSnap -> {
-                            if (docSnap.exists()) {
-                                User user = docSnap.toObject(User.class);
-                                if (user != null) {
-                                    fetchedUsers.add(user);
-                                    logger.i("Fetched user: " + uid);
-                                } else {
-                                    logger.w("User document exists but could not convert: " + uid);
-                                }
-                            } else {
-                                logger.w("User document does not exist: " + uid);
-                            }
-                        })
-                .addOnFailureListener(e -> logger.e("Failed to fetch user " + uid, e));
+  public class FetchUsersBinder extends Binder {
+    public FetchUsersService getService() {
+      return FetchUsersService.this;
     }
-
-    public void stopService() {
-        isServiceRunning = false;
-        executorService.shutdownNow();
-        stopSelf();
-        logger.i("FetchUsersService stopped");
-    }
-
-    @Override
-    public void onDestroy() {
-        stopService(); // Ensures executor stops and flags are cleared
-        super.onDestroy();
-    }
-
-    public class FetchUsersBinder extends Binder {
-        public FetchUsersService getService() {
-            return FetchUsersService.this;
-        }
-    }
+  }
 }

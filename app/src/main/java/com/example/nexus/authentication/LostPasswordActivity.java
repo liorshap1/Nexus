@@ -16,53 +16,46 @@
 package com.example.nexus.authentication;
 
 import android.os.Bundle;
-import android.view.View;
-
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.example.nexus.R;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.databinding.ActivityLostPasswordBinding;
 import com.example.nexus.utils.GetTextUtils;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
-
 import javax.inject.Inject;
 
 public class LostPasswordActivity extends AppCompatActivity {
-    private ActivityLostPasswordBinding binding;
-    @Inject
-    FirebaseAuth firebaseAuth;
-    @Inject
-    AppLogger logger;
+  private ActivityLostPasswordBinding binding;
+  @Inject FirebaseAuth firebaseAuth;
+  @Inject AppLogger logger;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        binding = ActivityLostPasswordBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-    }
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    binding = ActivityLostPasswordBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
+  }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+  @Override
+  protected void onStart() {
+    super.onStart();
 
-        binding.submitButton.setOnClickListener(view -> {
-            String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
-            firebaseAuth.sendPasswordResetEmail(userEmail)
-                    .addOnSuccessListener(unused -> logger.i("Sent password reset link"))
-                    .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+    binding.submitButton.setOnClickListener(
+        view -> {
+          String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
+          firebaseAuth
+              .sendPasswordResetEmail(userEmail)
+              .addOnSuccessListener(unused -> logger.i("Sent password reset link"))
+              .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
         });
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
+    binding.backButton.setOnClickListener(
+        view -> {
+          finish();
+        });
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+  }
 }

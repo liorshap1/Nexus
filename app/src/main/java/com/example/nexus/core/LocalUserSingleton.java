@@ -17,77 +17,33 @@ package com.example.nexus.core;
 
 import java.util.ArrayList;
 
-public class LocalUserSingleton {
-    private String firstName;
-    private String secondName;
-    private String email;
-    private String profilePicture;
-    private String uid;
-    private ArrayList<String> friends;
+public class LocalUserSingleton extends BaseUser {
+  private ArrayList<String> friends;
 
-    public LocalUserSingleton() {
-    }
+  public LocalUserSingleton() {
+    super();
+  }
 
-    public void initializeLocalUser(
-            String firstName,
-            String secondName,
-            String email,
-            String profilePicture,
-            String uid,
-            ArrayList<String> friends) {
-        this.firstName = firstName;
-        this.secondName = secondName;
-        this.email = email;
-        this.profilePicture = profilePicture;
-        this.uid = uid;
-        this.friends = friends;
-    }
+  public void initializeLocalUserSingleton(
+      String uid,
+      String firstName,
+      String secondName,
+      String email,
+      String profilePicture,
+      ArrayList<String> friends) {
+    setUid(uid);
+    setFirstName(firstName);
+    setSecondName(secondName);
+    setEmail(email);
+    setProfilePicture(profilePicture);
+    this.friends = friends;
+  }
 
-    public String getFirstName() {
-        return firstName;
-    }
+  public ArrayList<String> getFriends() {
+    return friends;
+  }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getSecondName() {
-        return secondName;
-    }
-
-    public void setSecondName(String secondName) {
-        this.secondName = secondName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
-    }
-
-    public ArrayList<String> getFriends() {
-        return friends;
-    }
-
-    public void setFriends(ArrayList<String> friends) {
-        this.friends = friends;
-    }
+  public void setFriends(ArrayList<String> friends) {
+    this.friends = friends;
+  }
 }

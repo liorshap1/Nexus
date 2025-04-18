@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.nexus.core.services;
+package com.example.nexus.modules;
 
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
+import com.google.firebase.database.FirebaseDatabase;
+import dagger.Module;
+import dagger.Provides;
+import dagger.hilt.InstallIn;
+import dagger.hilt.components.SingletonComponent;
+import javax.inject.Singleton;
 
-public class FetchMessagesService extends Service {
-    public FetchMessagesService() {
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+@Module
+@InstallIn(SingletonComponent.class)
+public class RealtimeDatabaseModule {
+  @Provides
+  @Singleton
+  public static FirebaseDatabase provideRealtimeDatabase() {
+    return FirebaseDatabase.getInstance();
+  }
 }

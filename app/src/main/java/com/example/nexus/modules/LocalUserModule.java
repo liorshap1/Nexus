@@ -16,20 +16,18 @@
 package com.example.nexus.modules;
 
 import com.example.nexus.core.LocalUserSingleton;
-
-import javax.inject.Singleton;
-
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
+import javax.inject.Singleton;
 
 @Module
 @InstallIn(SingletonComponent.class)
 public class LocalUserModule {
-    @Provides
-    @Singleton
-    public LocalUserSingleton provideLocalUserSingleton() {
-        return new LocalUserSingleton();
-    }
+  @Provides
+  @Singleton
+  public LocalUserSingleton provideLocalUserSingleton() {
+    return new LocalUserSingleton();
+  }
 }

@@ -17,108 +17,106 @@ package com.example.nexus.authentication;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import com.example.nexus.Constants;
-import com.example.nexus.R;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.core.User;
 import com.example.nexus.databinding.ActivityRegisterBinding;
 import com.example.nexus.utils.GetTextUtils;
 import com.example.nexus.utils.SharedPreferencesUtils;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Objects;
-
 import javax.inject.Inject;
 
 public class RegisterActivity extends AppCompatActivity {
-    private ActivityRegisterBinding binding;
-    @Inject
-    FirebaseFirestore firebaseFirestore;
-    @Inject
-    FirebaseAuth firebaseAuth;
-    @Inject
-    AppLogger logger;
-    @Inject
-    LocalUserSingleton localUserSingleton;
+  private ActivityRegisterBinding binding;
+  @Inject FirebaseFirestore firebaseFirestore;
+  @Inject FirebaseAuth firebaseAuth;
+  @Inject AppLogger logger;
+  @Inject LocalUserSingleton localUserSingleton;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        binding = ActivityRegisterBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-    }
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    binding = ActivityRegisterBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
+  }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+  @Override
+  protected void onStart() {
+    super.onStart();
 
-        binding.registerButton.setOnClickListener(view -> {
-            String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
-            String userPassword = GetTextUtils.getTextFromInput(binding.passwordInput);
-            String privateName = GetTextUtils.getTextFromInput(binding.privateNameInput);
-            String familyName = GetTextUtils.getTextFromInput(binding.familyNameInput);
+    binding.registerButton.setOnClickListener(
+        view -> {
+          String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
+          String userPassword = GetTextUtils.getTextFromInput(binding.passwordInput);
+          String privateName = GetTextUtils.getTextFromInput(binding.privateNameInput);
+          String familyName = GetTextUtils.getTextFromInput(binding.familyNameInput);
 
-            firebaseAuth.createUserWithEmailAndPassword(userEmail, userPassword)
-                    .addOnSuccessListener(authResult -> {
-                        String userId = Objects.requireNonNull(authResult.getUser()).getUid();
-                        User user = new User(privateName,familyName,userEmail,"0", userId);
-                        insertUserToCollection(user, new Callback() {
-                            @Override
-                            public void onInsertCompleted() {
-                                logger.success("Create user successfully!");
-                                SharedPreferencesUtils.insertData(RegisterActivity.this, Constants.UserFields.EMAIL, userEmail);
-                                SharedPreferencesUtils.insertData(RegisterActivity.this, Constants.UserFields.PASSWORD, userPassword);
-                            }
+          firebaseAuth
+              .createUserWithEmailAndPassword(userEmail, userPassword)
+              .addOnSuccessListener(
+                  authResult -> {
+                    String userId = Objects.requireNonNull(authResult.getUser()).getUid();
+                    User user = new User(privateName, familyName, userEmail, "0", userId);
+                    insertUserToCollection(
+                        user,
+                        new Callback() {
+                          @Override
+                          public void onInsertCompleted() {
+                            logger.success("Create user successfully!");
+                            SharedPreferencesUtils.insertData(
+                                RegisterActivity.this, Constants.UserFields.EMAIL, userEmail);
+                            SharedPreferencesUtils.insertData(
+                                RegisterActivity.this, Constants.UserFields.PASSWORD, userPassword);
+                          }
 
-                            @Override
-                            public void onInsertFailed(Exception e) {
-                                logger.e(e.getMessage(), e.getCause());
-                            }
+                          @Override
+                          public void onInsertFailed(Exception e) {
+                            logger.e(e.getMessage(), e.getCause());
+                          }
                         });
-                    })
-                    .addOnFailureListener(e -> {
-                       logger.e(e.getMessage(), e.getCause());
-                    });
+                  })
+              .addOnFailureListener(
+                  e -> {
+                    logger.e(e.getMessage(), e.getCause());
+                  });
         });
 
-        binding.loginButton.setOnClickListener((view ) -> {
-            Intent loginActivityIntent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(loginActivityIntent);
+    binding.loginButton.setOnClickListener(
+        (view) -> {
+          Intent loginActivityIntent = new Intent(RegisterActivity.this, LoginActivity.class);
+          startActivity(loginActivityIntent);
         });
-    }
+  }
 
-    protected void insertUserToCollection(User user, Callback callback){
-        firebaseFirestore.collection(Constants.Firestore.USERS_COLLECTION).document(user.getUid())
-                .set(user)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()){
-                        localUserSingleton.initializeLocalUser(user.getFirstName(), user.getSecondName(), user.getEmail(), "00", user.getUid(), new ArrayList<>());
-                        callback.onInsertCompleted();
-                    }
-                })
-                .addOnFailureListener(callback::onInsertFailed);
-    }
+  protected void insertUserToCollection(User user, Callback callback) {
+    firebaseFirestore
+        .collection(Constants.Firestore.USERS_COLLECTION)
+        .document(user.getUid())
+        .set(user)
+        .addOnCompleteListener(
+            task -> {
+              if (task.isSuccessful()) {
+                localUserSingleton.initializeLocalUserSingleton(
+                    user.getFirstName(),
+                    user.getSecondName(),
+                    user.getEmail(),
+                    "00",
+                    user.getUid(),
+                    new ArrayList<>());
+                callback.onInsertCompleted();
+              }
+            })
+        .addOnFailureListener(callback::onInsertFailed);
+  }
 
-    interface Callback {
-        void onInsertCompleted();
-        void onInsertFailed(Exception e);
-    }
+  interface Callback {
+    void onInsertCompleted();
+
+    void onInsertFailed(Exception e);
+  }
 }

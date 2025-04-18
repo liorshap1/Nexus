@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:name=".MyNexusApplication"
         android:allowBackup="true"
@@ -37,8 +38,9 @@
             android:exported="false" />
 
         <service
-            android:name=".core.services.FetchMessagesService"
+            android:name=".core.services.NotificationsService"
             android:enabled="true"
+            android:foregroundServiceType="remoteMessaging"
             android:exported="true" />
         <service
             android:name=".core.services.FetchUsersService"

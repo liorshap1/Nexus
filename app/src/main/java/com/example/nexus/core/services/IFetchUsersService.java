@@ -15,12 +15,43 @@
  */
 package com.example.nexus.core.services;
 
+import androidx.annotation.Nullable;
 import com.example.nexus.core.User;
-
 import java.util.List;
 
 public interface IFetchUsersService {
-    void enqueueUser(String uid);
 
-    List<User> getFetchedUsers();
+  // Enqueue a user to be fetched later
+  void enqueueUser(String uid);
+
+  // Trigger an immediate fetch for a specific user
+  void fetchUser(String uid);
+
+  // Bulk fetch
+  void fetchUsers();
+
+  // Returns list of successfully fetched users
+  List<User> getFetchedUsers();
+
+  // Get a specific user, if already fetched
+  @Nullable
+  User getUser(String uid);
+
+  // Check if a user is already fetched
+  boolean isUserFetched(String uid);
+
+  // Register a listener for updates (observer pattern)
+  void addFetchListener(FetchListener listener);
+
+  // Clear all internal states (cache, queue, etc.)
+  void clear();
+
+  // Interface for callback listeners
+  interface FetchListener {
+    void onUserFetched(User user);
+
+    void onFetchFailed(String uid, Exception e);
+
+    void onQueueUpdated(List<String> pendingUids);
+  }
 }

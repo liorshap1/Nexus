@@ -16,19 +16,19 @@
 package com.example.nexus.applogger;
 
 public interface AppLogger {
-    void log(LogLevel level, String message);
+  void log(LogLevel level, String message);
 
-    void log(LogLevel level, String message, Throwable throwable);
+  void log(LogLevel level, String message, Throwable throwable);
 
-    void v(String message);
+  void v(String message);
 
-    void d(String message);
+  void d(String message);
 
-    void i(String message);
+  void i(String message);
 
-    void w(String message);
+  void w(String message);
 
-    void e(String message, Throwable throwable);
+  void e(String message, Throwable throwable);
 
-    void success(String message);
+  void success(String message);
 }
