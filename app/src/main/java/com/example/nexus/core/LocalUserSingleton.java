@@ -18,32 +18,26 @@ package com.example.nexus.core;
 import java.util.ArrayList;
 
 public class LocalUserSingleton extends BaseUser {
-  private ArrayList<String> friends;
+    private ArrayList<String> friends;
 
-  public LocalUserSingleton() {
-    super();
-  }
+    public LocalUserSingleton() {
+        super();
+    }
 
-  public void initializeLocalUserSingleton(
-      String uid,
-      String firstName,
-      String secondName,
-      String email,
-      String profilePicture,
-      ArrayList<String> friends) {
-    setUid(uid);
-    setFirstName(firstName);
-    setSecondName(secondName);
-    setEmail(email);
-    setProfilePicture(profilePicture);
-    this.friends = friends;
-  }
+    public void initializeLocalUserSingleton(String uid, String firstName, String secondName, String email, String profilePicture, ArrayList<String> friends) {
+        setUid(uid);
+        setFirstName(firstName);
+        setSecondName(secondName);
+        setEmail(email);
+        setProfilePicture(profilePicture);
+        this.friends = friends;
+    }
 
-  public ArrayList<String> getFriends() {
-    return friends;
-  }
+    public ArrayList<String> getFriends() {
+        return friends;
+    }
 
-  public void setFriends(ArrayList<String> friends) {
-    this.friends = friends;
-  }
+    public void setFriends(ArrayList<String> friends) {
+        this.friends = friends;
+    }
 }

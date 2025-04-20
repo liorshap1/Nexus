@@ -24,38 +24,35 @@ import com.google.firebase.auth.FirebaseAuth;
 import javax.inject.Inject;
 
 public class LostPasswordActivity extends AppCompatActivity {
-  private ActivityLostPasswordBinding binding;
-  @Inject FirebaseAuth firebaseAuth;
-  @Inject AppLogger logger;
+    private ActivityLostPasswordBinding binding;
+    @Inject
+    FirebaseAuth firebaseAuth;
+    @Inject
+    AppLogger logger;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    binding = ActivityLostPasswordBinding.inflate(getLayoutInflater());
-    setContentView(binding.getRoot());
-  }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityLostPasswordBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+    }
 
-  @Override
-  protected void onStart() {
-    super.onStart();
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-    binding.submitButton.setOnClickListener(
-        view -> {
-          String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
-          firebaseAuth
-              .sendPasswordResetEmail(userEmail)
-              .addOnSuccessListener(unused -> logger.i("Sent password reset link"))
-              .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+        binding.submitButton.setOnClickListener(view -> {
+            String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
+            firebaseAuth.sendPasswordResetEmail(userEmail).addOnSuccessListener(unused -> logger.i("Sent password reset link")).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
         });
 
-    binding.backButton.setOnClickListener(
-        view -> {
-          finish();
+        binding.backButton.setOnClickListener(view -> {
+            finish();
         });
-  }
+    }
 
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-  }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }

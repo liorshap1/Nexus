@@ -32,91 +32,72 @@ import java.util.Objects;
 import javax.inject.Inject;
 
 public class RegisterActivity extends AppCompatActivity {
-  private ActivityRegisterBinding binding;
-  @Inject FirebaseFirestore firebaseFirestore;
-  @Inject FirebaseAuth firebaseAuth;
-  @Inject AppLogger logger;
-  @Inject LocalUserSingleton localUserSingleton;
+    private ActivityRegisterBinding binding;
+    @Inject
+    FirebaseFirestore firebaseFirestore;
+    @Inject
+    FirebaseAuth firebaseAuth;
+    @Inject
+    AppLogger logger;
+    @Inject
+    LocalUserSingleton localUserSingleton;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    binding = ActivityRegisterBinding.inflate(getLayoutInflater());
-    setContentView(binding.getRoot());
-  }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityRegisterBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+    }
 
-  @Override
-  protected void onStart() {
-    super.onStart();
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-    binding.registerButton.setOnClickListener(
-        view -> {
-          String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
-          String userPassword = GetTextUtils.getTextFromInput(binding.passwordInput);
-          String privateName = GetTextUtils.getTextFromInput(binding.privateNameInput);
-          String familyName = GetTextUtils.getTextFromInput(binding.familyNameInput);
+        binding.registerButton.setOnClickListener(view -> {
+            String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
+            String userPassword = GetTextUtils.getTextFromInput(binding.passwordInput);
+            String privateName = GetTextUtils.getTextFromInput(binding.privateNameInput);
+            String familyName = GetTextUtils.getTextFromInput(binding.familyNameInput);
 
-          firebaseAuth
-              .createUserWithEmailAndPassword(userEmail, userPassword)
-              .addOnSuccessListener(
-                  authResult -> {
-                    String userId = Objects.requireNonNull(authResult.getUser()).getUid();
-                    User user = new User(privateName, familyName, userEmail, "0", userId);
-                    insertUserToCollection(
-                        user,
-                        new Callback() {
-                          @Override
-                          public void onInsertCompleted() {
-                            logger.success("Create user successfully!");
-                            SharedPreferencesUtils.insertData(
-                                RegisterActivity.this, Constants.UserFields.EMAIL, userEmail);
-                            SharedPreferencesUtils.insertData(
-                                RegisterActivity.this, Constants.UserFields.PASSWORD, userPassword);
-                          }
+            firebaseAuth.createUserWithEmailAndPassword(userEmail, userPassword).addOnSuccessListener(authResult -> {
+                String userId = Objects.requireNonNull(authResult.getUser()).getUid();
+                User user = new User(privateName, familyName, userEmail, "0", userId);
+                insertUserToCollection(user, new Callback() {
+                    @Override
+                    public void onInsertCompleted() {
+                        logger.success("Create user successfully!");
+                        SharedPreferencesUtils.insertData(RegisterActivity.this, Constants.UserFields.EMAIL, userEmail);
+                        SharedPreferencesUtils.insertData(RegisterActivity.this, Constants.UserFields.PASSWORD, userPassword);
+                    }
 
-                          @Override
-                          public void onInsertFailed(Exception e) {
-                            logger.e(e.getMessage(), e.getCause());
-                          }
-                        });
-                  })
-              .addOnFailureListener(
-                  e -> {
-                    logger.e(e.getMessage(), e.getCause());
-                  });
+                    @Override
+                    public void onInsertFailed(Exception e) {
+                        logger.e(e.getMessage(), e.getCause());
+                    }
+                });
+            }).addOnFailureListener(e -> {
+                logger.e(e.getMessage(), e.getCause());
+            });
         });
 
-    binding.loginButton.setOnClickListener(
-        (view) -> {
-          Intent loginActivityIntent = new Intent(RegisterActivity.this, LoginActivity.class);
-          startActivity(loginActivityIntent);
+        binding.loginButton.setOnClickListener((view) -> {
+            Intent loginActivityIntent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(loginActivityIntent);
         });
-  }
+    }
 
-  protected void insertUserToCollection(User user, Callback callback) {
-    firebaseFirestore
-        .collection(Constants.Firestore.USERS_COLLECTION)
-        .document(user.getUid())
-        .set(user)
-        .addOnCompleteListener(
-            task -> {
-              if (task.isSuccessful()) {
-                localUserSingleton.initializeLocalUserSingleton(
-                    user.getFirstName(),
-                    user.getSecondName(),
-                    user.getEmail(),
-                    "00",
-                    user.getUid(),
-                    new ArrayList<>());
+    protected void insertUserToCollection(User user, Callback callback) {
+        firebaseFirestore.collection(Constants.Firestore.USERS_COLLECTION).document(user.getUid()).set(user).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                localUserSingleton.initializeLocalUserSingleton(user.getFirstName(), user.getSecondName(), user.getEmail(), "00", user.getUid(), new ArrayList<>());
                 callback.onInsertCompleted();
-              }
-            })
-        .addOnFailureListener(callback::onInsertFailed);
-  }
+            }
+        }).addOnFailureListener(callback::onInsertFailed);
+    }
 
-  interface Callback {
-    void onInsertCompleted();
+    interface Callback {
+        void onInsertCompleted();
 
-    void onInsertFailed(Exception e);
-  }
+        void onInsertFailed(Exception e);
+    }
 }

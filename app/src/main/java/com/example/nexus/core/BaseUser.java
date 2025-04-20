@@ -18,95 +18,79 @@ package com.example.nexus.core;
 import androidx.annotation.NonNull;
 
 public abstract class BaseUser {
-  @NonNull private String uid = "";
-  @NonNull private String firstName = "";
-  @NonNull private String secondName = "";
-  @NonNull private String email = "";
-  private String profilePicture;
+    @NonNull
+    private String uid = "";
+    @NonNull
+    private String firstName = "";
+    @NonNull
+    private String secondName = "";
+    @NonNull
+    private String email = "";
+    private String profilePicture;
 
-  public BaseUser() {
-    // Required for serialization and frameworks like Hilt/Firebase
-  }
+    public BaseUser() {
+        // Required for serialization and frameworks like Hilt/Firebase
+    }
 
-  public BaseUser(
-      @NonNull String uid,
-      @NonNull String firstName,
-      @NonNull String secondName,
-      @NonNull String email,
-      String profilePicture) {
-    this.uid = uid;
-    this.firstName = firstName;
-    this.secondName = secondName;
-    this.email = email;
-    this.profilePicture = profilePicture;
-  }
+    public BaseUser(@NonNull String uid, @NonNull String firstName, @NonNull String secondName, @NonNull String email, String profilePicture) {
+        this.uid = uid;
+        this.firstName = firstName;
+        this.secondName = secondName;
+        this.email = email;
+        this.profilePicture = profilePicture;
+    }
 
-  @NonNull
-  public String getUid() {
-    return uid;
-  }
+    @NonNull
+    public String getUid() {
+        return uid;
+    }
 
-  public void setUid(@NonNull String uid) {
-    this.uid = uid;
-  }
+    public void setUid(@NonNull String uid) {
+        this.uid = uid;
+    }
 
-  @NonNull
-  public String getFirstName() {
-    return firstName;
-  }
+    @NonNull
+    public String getFirstName() {
+        return firstName;
+    }
 
-  public void setFirstName(@NonNull String firstName) {
-    this.firstName = firstName;
-  }
+    public void setFirstName(@NonNull String firstName) {
+        this.firstName = firstName;
+    }
 
-  @NonNull
-  public String getSecondName() {
-    return secondName;
-  }
+    @NonNull
+    public String getSecondName() {
+        return secondName;
+    }
 
-  public void setSecondName(@NonNull String secondName) {
-    this.secondName = secondName;
-  }
+    public void setSecondName(@NonNull String secondName) {
+        this.secondName = secondName;
+    }
 
-  @NonNull
-  public String getEmail() {
-    return email;
-  }
+    @NonNull
+    public String getEmail() {
+        return email;
+    }
 
-  public void setEmail(@NonNull String email) {
-    this.email = email;
-  }
+    public void setEmail(@NonNull String email) {
+        this.email = email;
+    }
 
-  public String getProfilePicture() {
-    return profilePicture;
-  }
+    public String getProfilePicture() {
+        return profilePicture;
+    }
 
-  public String getFullName() {
-    return this.firstName + " " + this.secondName;
-  }
+    public String getFullName() {
+        return this.firstName + " " + this.secondName;
+    }
 
-  public void setProfilePicture(String profilePicture) {
-    this.profilePicture = profilePicture;
-  }
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 
-  @Override
-  public String toString() {
-    return "BaseUser{"
-        + "uid='"
-        + uid
-        + '\''
-        + ", firstName='"
-        + firstName
-        + '\''
-        + ", secondName='"
-        + secondName
-        + '\''
-        + ", email='"
-        + email
-        + '\''
-        + ", profilePicture='"
-        + profilePicture
-        + '\''
-        + '}';
-  }
+    @Override
+    public String toString() {
+        return "BaseUser{" + "uid='" + uid + '\'' + ", firstName='" + firstName + '\'' + ", secondName='" + secondName + '\'' + ", email='" + email + '\'' + ", profilePicture='" + profilePicture
+                + '\'' + '}';
+    }
 }

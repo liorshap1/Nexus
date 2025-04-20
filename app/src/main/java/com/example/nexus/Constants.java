@@ -16,63 +16,64 @@
 package com.example.nexus;
 
 public class Constants {
-  public static final int REQUEST_CODE = 1;
-  public static final int NOTIFICATION_ID = 2;
-  public static final String USERS_KEY = "users";
-  public static final String CHAT_CHANNEL_ID = "chat_channels";
-  public static final String CHATS_INTENT = "chats";
-  public static final int FOREGROUND_NOTIFICATION_ID = 1;
-  public static final String CURRENT_CHAT = "current_chat_id";
-  public static class UserFields {
-    public static final String FIRST_NAME = "first_name";
-    public static final String SECOND_NAME = "second_name";
-    public static final String EMAIL = "email";
-    public static final String PROFILE_PICTURE = "photo";
-    public static final String UID = "uid";
-    public static final String FRIENDS = "friends";
-    public static final String PENDING_REQUESTS = "pending_requests";
-    public static final String PASSWORD = "password";
-  }
+    public static final int REQUEST_CODE = 1;
+    public static final int NOTIFICATION_ID = 2;
+    public static final String USERS_KEY = "users";
+    public static final String CHAT_CHANNEL_ID = "chat_channels";
+    public static final String CHATS_INTENT = "chats";
+    public static final int FOREGROUND_NOTIFICATION_ID = 1;
+    public static final String CURRENT_CHAT = "current_chat_id";
 
-  // Firebase Authentication Errors
-  public static class AuthErrors {
-    public static final String INVALID_EMAIL = "ERROR_INVALID_EMAIL";
-    public static final String USER_NOT_FOUND = "ERROR_USER_NOT_FOUND";
-    public static final String WRONG_PASSWORD = "ERROR_WRONG_PASSWORD";
-    public static final String EMAIL_ALREADY_IN_USE = "ERROR_EMAIL_ALREADY_IN_USE";
-    public static final String USER_DISABLED = "ERROR_USER_DISABLED";
-    public static final String WEAK_PASSWORD = "ERROR_WEAK_PASSWORD";
-  }
+    public static class UserFields {
+        public static final String FIRST_NAME = "first_name";
+        public static final String SECOND_NAME = "second_name";
+        public static final String EMAIL = "email";
+        public static final String PROFILE_PICTURE = "photo";
+        public static final String UID = "uid";
+        public static final String FRIENDS = "friends";
+        public static final String PENDING_REQUESTS = "pending_requests";
+        public static final String PASSWORD = "password";
+    }
 
-  // Firebase Realtime Database Errors
-  public static class RealtimeDatabaseErrors {
-    public static final String PERMISSION_DENIED = "ERROR_PERMISSION_DENIED";
-    public static final String NETWORK_ERROR = "ERROR_NETWORK";
-  }
+    // Firebase Authentication Errors
+    public static class AuthErrors {
+        public static final String INVALID_EMAIL = "ERROR_INVALID_EMAIL";
+        public static final String USER_NOT_FOUND = "ERROR_USER_NOT_FOUND";
+        public static final String WRONG_PASSWORD = "ERROR_WRONG_PASSWORD";
+        public static final String EMAIL_ALREADY_IN_USE = "ERROR_EMAIL_ALREADY_IN_USE";
+        public static final String USER_DISABLED = "ERROR_USER_DISABLED";
+        public static final String WEAK_PASSWORD = "ERROR_WEAK_PASSWORD";
+    }
 
-  // Firebase Firestore Errors
-  public static class FirestoreErrors {
-    public static final String DOCUMENT_NOT_FOUND = "ERROR_DOCUMENT_NOT_FOUND";
-    public static final String ALREADY_EXISTS = "ERROR_ALREADY_EXISTS";
-    public static final String UNAVAILABLE = "ERROR_UNAVAILABLE";
-    public static final String DEADLINE_EXCEEDED = "ERROR_DEADLINE_EXCEEDED";
-    public static final String PERMISSION_DENIED = "ERROR_PERMISSION_DENIED";
-  }
+    // Firebase Realtime Database Errors
+    public static class RealtimeDatabaseErrors {
+        public static final String PERMISSION_DENIED = "ERROR_PERMISSION_DENIED";
+        public static final String NETWORK_ERROR = "ERROR_NETWORK";
+    }
 
-  public static class Firestore {
-    public static final String USERS_COLLECTION = "_users";
-  }
+    // Firebase Firestore Errors
+    public static class FirestoreErrors {
+        public static final String DOCUMENT_NOT_FOUND = "ERROR_DOCUMENT_NOT_FOUND";
+        public static final String ALREADY_EXISTS = "ERROR_ALREADY_EXISTS";
+        public static final String UNAVAILABLE = "ERROR_UNAVAILABLE";
+        public static final String DEADLINE_EXCEEDED = "ERROR_DEADLINE_EXCEEDED";
+        public static final String PERMISSION_DENIED = "ERROR_PERMISSION_DENIED";
+    }
 
-  public static class FIREBASE_DATABASE {
-    public static final String MESSAGES = "messages";
-    public static final String TIMESTAMP = "timestamp";
-    public static final String CHATS = "chats";
-  }
+    public static class Firestore {
+        public static final String USERS_COLLECTION = "_users";
+    }
 
-  public static class MessageFields {
-    public static final String SENDER_UID = "sender_uid";
-    public static final String MESSAGE = "message";
-    public static final String SENDER_NAME = "sender_name";
-    public static final String TIMESTAMP = "timestamp";
-  }
+    public static class FIREBASE_DATABASE {
+        public static final String MESSAGES = "messages";
+        public static final String TIMESTAMP = "timestamp";
+        public static final String CHATS = "chats";
+    }
+
+    public static class MessageFields {
+        public static final String SENDER_UID = "sender_uid";
+        public static final String MESSAGE = "message";
+        public static final String SENDER_NAME = "sender_name";
+        public static final String TIMESTAMP = "timestamp";
+    }
 }

@@ -25,6 +25,6 @@ import dagger.hilt.components.SingletonComponent;
 @Module
 @InstallIn(SingletonComponent.class)
 public abstract class LoggerModule {
-  @Binds
-  public abstract AppLogger bindAppLogger(AppLoggerImpl impl);
+    @Binds
+    public abstract AppLogger bindAppLogger(AppLoggerImpl impl);
 }

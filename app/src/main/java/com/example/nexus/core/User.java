@@ -18,21 +18,21 @@ package com.example.nexus.core;
 import androidx.annotation.NonNull;
 
 public class User extends BaseUser {
-  /**
-   * Constructs a new BaseUser.
-   *
-   * @param uid The user's unique ID.
-   * @param firstName The user's first name.
-   * @param secondName The user's second name.
-   * @param email The user's email address.
-   * @param profilePicture The URL or path of the user's profile picture.
-   */
-  public User(
-      @NonNull String uid,
-      @NonNull String firstName,
-      @NonNull String secondName,
-      @NonNull String email,
-      String profilePicture) {
-    super(uid, firstName, secondName, email, profilePicture);
-  }
+    /**
+     * Constructs a new BaseUser.
+     *
+     * @param uid
+     *            The user's unique ID.
+     * @param firstName
+     *            The user's first name.
+     * @param secondName
+     *            The user's second name.
+     * @param email
+     *            The user's email address.
+     * @param profilePicture
+     *            The URL or path of the user's profile picture.
+     */
+    public User(@NonNull String uid, @NonNull String firstName, @NonNull String secondName, @NonNull String email, String profilePicture) {
+        super(uid, firstName, secondName, email, profilePicture);
+    }
 }

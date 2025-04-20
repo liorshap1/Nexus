@@ -5,6 +5,7 @@
     <color name="background_default">#0A0A0A</color>
     <color name="gray_900">#1A1A1A</color>
     <color name="gray_800">#1F1F1F</color>
+    <color name="gray_700">#18181b</color>
     <color name="gray_400">#878787</color>
     <color name="gray_100">#A1A1A1</color>
 

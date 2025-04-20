@@ -19,39 +19,72 @@ import androidx.annotation.Nullable;
 import com.example.nexus.core.User;
 import java.util.List;
 
+/**
+ * Contract for FetchUsersService, allowing enqueueing and retrieval of users,
+ * as well as registering listeners for fetch completion events.
+ */
 public interface IFetchUsersService {
+    /**
+     * Add a user UID to the fetch queue.
+     *
+     * @param uid
+     *            Firebase UID of user
+     */
+    void enqueueUser(String uid);
 
-  // Enqueue a user to be fetched later
-  void enqueueUser(String uid);
+    /** Remove all pending UIDs and clear cached users. */
+    void clear();
 
-  // Trigger an immediate fetch for a specific user
-  void fetchUser(String uid);
+    /**
+     * Get all fetched users (unmodifiable list).
+     *
+     * @return list of users
+     */
+    List<User> getFetchedUsers();
 
-  // Bulk fetch
-  void fetchUsers();
+    /**
+     * Get a specific fetched user by UID.
+     *
+     * @param uid
+     *            Firebase UID of user
+     * @return User or null if not fetched
+     */
+    @Nullable
+    User getUser(String uid);
 
-  // Returns list of successfully fetched users
-  List<User> getFetchedUsers();
+    /**
+     * Check if a user has already been fetched.
+     *
+     * @param uid
+     *            Firebase UID of user
+     * @return true if in cache
+     */
+    boolean isUserFetched(String uid);
 
-  // Get a specific user, if already fetched
-  @Nullable
-  User getUser(String uid);
+    /**
+     * Register a listener to be notified when new users are fetched.
+     *
+     * @param listener
+     *            callback invoked on main thread
+     */
+    void addFetchListener(FetchListener listener);
 
-  // Check if a user is already fetched
-  boolean isUserFetched(String uid);
+    /**
+     * Unregister a previously added listener.
+     *
+     * @param listener
+     *            callback to remove
+     */
+    void removeFetchListener(FetchListener listener);
 
-  // Register a listener for updates (observer pattern)
-  void addFetchListener(FetchListener listener);
-
-  // Clear all internal states (cache, queue, etc.)
-  void clear();
-
-  // Interface for callback listeners
-  interface FetchListener {
-    void onUserFetched(User user);
-
-    void onFetchFailed(String uid, Exception e);
-
-    void onQueueUpdated(List<String> pendingUids);
-  }
+    /** Listener callback for fetch completion events. */
+    interface FetchListener {
+        /**
+         * Called with the current list of fetched users.
+         *
+         * @param users
+         *            snapshot of fetched users
+         */
+        void onUsersFetched(List<User> users);
+    }
 }

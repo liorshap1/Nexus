@@ -16,48 +16,47 @@
 package com.example.nexus.core;
 
 public class Message {
-  private String text;
-  private String timestamp;
-  private String messageDeliverUid;
-  private MessageType messageType;
+    private String text;
+    private String timestamp;
+    private String messageDeliverUid;
+    private MessageType messageType;
 
-  public Message(String text, String timestamp, MessageType messageType, String messageDeliverUid) {
-    this.text = text;
-    this.timestamp = timestamp;
-    this.messageType = messageType;
-    this.messageDeliverUid = messageDeliverUid;
-  }
+    public Message(String text, String timestamp, MessageType messageType, String messageDeliverUid) {
+        this.text = text;
+        this.timestamp = timestamp;
+        this.messageType = messageType;
+        this.messageDeliverUid = messageDeliverUid;
+    }
 
-  public String getMessageDeliverUid() {
-    return messageDeliverUid;
-  }
+    public String getMessageDeliverUid() {
+        return messageDeliverUid;
+    }
 
-  public String getText() {
-    return text;
-  }
+    public String getText() {
+        return text;
+    }
 
-  public void setText(String text) {
-    this.text = text;
-  }
+    public void setText(String text) {
+        this.text = text;
+    }
 
-  public String getTimestamp() {
-    return timestamp;
-  }
+    public String getTimestamp() {
+        return timestamp;
+    }
 
-  public void setTimestamp(String timestamp) {
-    this.timestamp = timestamp;
-  }
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
 
-  public MessageType getMessageType() {
-    return messageType;
-  }
+    public MessageType getMessageType() {
+        return messageType;
+    }
 
-  public void setMessageType(MessageType messageType) {
-    this.messageType = messageType;
-  }
+    public void setMessageType(MessageType messageType) {
+        this.messageType = messageType;
+    }
 
-  public enum MessageType {
-    SENDER,
-    RECEIVER
-  }
+    public enum MessageType {
+        SENDER, RECEIVER
+    }
 }

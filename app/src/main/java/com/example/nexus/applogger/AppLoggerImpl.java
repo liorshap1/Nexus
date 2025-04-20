@@ -23,96 +23,92 @@ import java.util.Locale;
 import javax.inject.Inject;
 
 public class AppLoggerImpl implements AppLogger {
-  private static final EnumSet<LogLevel> ENABLED_LEVELS =
-      EnumSet.of(
-          LogLevel.INFO,
-          LogLevel.SUCCESS,
-          LogLevel.ERROR,
-          LogLevel.WARNING,
-          LogLevel.DEBUG,
-          LogLevel.VERBOSE // Remove in release build if needed
-          );
+    private static final EnumSet<LogLevel> ENABLED_LEVELS = EnumSet.of(LogLevel.INFO, LogLevel.SUCCESS, LogLevel.ERROR, LogLevel.WARNING, LogLevel.DEBUG, LogLevel.VERBOSE // Remove in release build if
+                                                                                                                                                                           // needed
+    );
 
-  @Inject
-  public AppLoggerImpl() {}
-
-  private String getTimestamp() {
-    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault());
-    return sdf.format(new Date());
-  }
-
-  private String getCallerClassName() {
-    StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-    for (int i = 4; i < stack.length; i++) {
-      String className = stack[i].getClassName();
-      if (!className.contains("AppLogger")) {
-        return className.substring(className.lastIndexOf('.') + 1);
-      }
+    @Inject
+    public AppLoggerImpl() {
     }
-    return "UnknownClass";
-  }
 
-  @Override
-  public void log(LogLevel level, String message) {
-    log(level, message, null);
-  }
-
-  @Override
-  public void log(LogLevel level, String message, Throwable throwable) {
-    if (!ENABLED_LEVELS.contains(level)) return;
-
-    String tag = getCallerClassName();
-    String logMsg = "[" + getTimestamp() + "] " + message;
-
-    switch (level) {
-      case VERBOSE:
-        Log.v(tag, logMsg);
-        break;
-      case DEBUG:
-        Log.d(tag, logMsg);
-        break;
-      case INFO:
-        Log.i(tag, "ℹ️ " + logMsg);
-        break;
-      case SUCCESS:
-        Log.i(tag, "✅ " + logMsg);
-        break;
-      case WARNING:
-        Log.w(tag, "⚠️ " + logMsg);
-        break;
-      case ERROR:
-        Log.e(tag, "❌ " + logMsg, throwable);
-        break;
+    private String getTimestamp() {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault());
+        return sdf.format(new Date());
     }
-  }
 
-  @Override
-  public void v(String message) {
-    log(LogLevel.VERBOSE, message);
-  }
+    private String getCallerClassName() {
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        for (int i = 4; i < stack.length; i++) {
+            String className = stack[i].getClassName();
+            if (!className.contains("AppLogger")) {
+                return className.substring(className.lastIndexOf('.') + 1);
+            }
+        }
+        return "UnknownClass";
+    }
 
-  @Override
-  public void d(String message) {
-    log(LogLevel.DEBUG, message);
-  }
+    @Override
+    public void log(LogLevel level, String message) {
+        log(level, message, null);
+    }
 
-  @Override
-  public void i(String message) {
-    log(LogLevel.INFO, message);
-  }
+    @Override
+    public void log(LogLevel level, String message, Throwable throwable) {
+        if (!ENABLED_LEVELS.contains(level))
+            return;
 
-  @Override
-  public void w(String message) {
-    log(LogLevel.WARNING, message);
-  }
+        String tag = getCallerClassName();
+        String logMsg = "[" + getTimestamp() + "] " + message;
 
-  @Override
-  public void e(String message, Throwable throwable) {
-    log(LogLevel.ERROR, message, throwable);
-  }
+        switch (level) {
+            case VERBOSE :
+                Log.v(tag, logMsg);
+                break;
+            case DEBUG :
+                Log.d(tag, logMsg);
+                break;
+            case INFO :
+                Log.i(tag, "ℹ️ " + logMsg);
+                break;
+            case SUCCESS :
+                Log.i(tag, "✅ " + logMsg);
+                break;
+            case WARNING :
+                Log.w(tag, "⚠️ " + logMsg);
+                break;
+            case ERROR :
+                Log.e(tag, "❌ " + logMsg, throwable);
+                break;
+        }
+    }
 
-  @Override
-  public void success(String message) {
-    log(LogLevel.SUCCESS, message);
-  }
+    @Override
+    public void v(String message) {
+        log(LogLevel.VERBOSE, message);
+    }
+
+    @Override
+    public void d(String message) {
+        log(LogLevel.DEBUG, message);
+    }
+
+    @Override
+    public void i(String message) {
+        log(LogLevel.INFO, message);
+    }
+
+    @Override
+    public void w(String message) {
+        log(LogLevel.WARNING, message);
+    }
+
+    @Override
+    public void e(String message, Throwable throwable) {
+        log(LogLevel.ERROR, message, throwable);
+    }
+
+    @Override
+    public void success(String message) {
+        log(LogLevel.SUCCESS, message);
+    }
 }

@@ -27,21 +27,16 @@ import dagger.hilt.android.HiltAndroidApp;
 @HiltAndroidApp
 public class MyNexusApplication extends Application {
 
-  @Override
-  public void onCreate() {
-    super.onCreate();
+    @Override
+    public void onCreate() {
+        super.onCreate();
 
-    Lottie.initialize(
-        new LottieConfig.Builder()
-            .setEnableSystraceMarkers(true)
-            // Optional: customize network fetcher and cache here
-            .build());
-    final FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
-    FirebaseApp.initializeApp(getApplicationContext());
-    FirebaseFirestoreSettings settings =
-        new FirebaseFirestoreSettings.Builder(firebaseFirestore.getFirestoreSettings())
-            .setLocalCacheSettings(MemoryCacheSettings.newBuilder().build())
-            .build();
-    firebaseFirestore.setFirestoreSettings(settings);
-  }
+        Lottie.initialize(new LottieConfig.Builder().setEnableSystraceMarkers(true)
+                // Optional: customize network fetcher and cache here
+                .build());
+        final FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+        FirebaseApp.initializeApp(getApplicationContext());
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder(firebaseFirestore.getFirestoreSettings()).setLocalCacheSettings(MemoryCacheSettings.newBuilder().build()).build();
+        firebaseFirestore.setFirestoreSettings(settings);
+    }
 }

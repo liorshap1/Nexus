@@ -27,6 +27,7 @@ import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.core.services.FetchUsersService;
 import com.example.nexus.databinding.ActivityLoginBinding;
+import com.example.nexus.home.MainHomeActivity;
 import com.example.nexus.utils.GetTextUtils;
 import com.example.nexus.utils.SharedPreferencesUtils;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,119 +42,94 @@ import javax.inject.Inject;
 
 @AndroidEntryPoint
 public class LoginActivity extends AppCompatActivity {
-  @Inject LocalUserSingleton localUserSingleton;
-  @Inject FirebaseAuth firebaseAuth;
-  @Inject AppLogger logger;
-  private ActivityLoginBinding binding;
-  private Disposable loginDisposable;
-  private FetchUsersService fetchUsersService;
+    @Inject
+    LocalUserSingleton localUserSingleton;
+    @Inject
+    FirebaseAuth firebaseAuth;
+    @Inject
+    AppLogger logger;
+    private ActivityLoginBinding binding;
+    private Disposable loginDisposable;
+    private FetchUsersService fetchUsersService;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    binding = ActivityLoginBinding.inflate(getLayoutInflater());
-    setContentView(binding.getRoot());
-  }
-
-  @SuppressLint("CheckResult")
-  @Override
-  protected void onStart() {
-    super.onStart();
-
-    var userEmail = SharedPreferencesUtils.getDataByKey(this, Constants.UserFields.EMAIL);
-    var userPassword = SharedPreferencesUtils.getDataByKey(this, Constants.UserFields.PASSWORD);
-
-    if (userEmail != null && userPassword != null) {
-      GetTextUtils.setInputText(binding.emailInput, userEmail);
-      GetTextUtils.setInputText(binding.passwordInput, userPassword);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
     }
 
-    Intent fetchUsersServiceIntent = new Intent(this, FetchUsersService.class);
-    binding.loginButton.setOnClickListener(
-        view -> {
-          String email = GetTextUtils.getTextFromInput(binding.emailInput);
-          String password = GetTextUtils.getTextFromInput(binding.passwordInput);
+    @SuppressLint("CheckResult")
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-          loginDisposable =
-              signIn(email, password)
-                  .doOnSubscribe(
-                      disposable -> {
-                        binding.progressBar.setVisibility(VISIBLE);
-                      })
-                  .observeOn(AndroidSchedulers.mainThread())
-                  .doOnSuccess(uid -> localUserSingleton.setUid(uid))
-                  .flatMap(this::retrieveUser)
-                  .subscribe(
-                      docSnap -> {
-                        localUserSingleton.initializeLocalUserSingleton(
-                            docSnap.getString(Constants.UserFields.FIRST_NAME),
-                            docSnap.getString(Constants.UserFields.SECOND_NAME),
-                            docSnap.getString(Constants.UserFields.EMAIL),
-                            docSnap.getString(Constants.UserFields.PROFILE_PICTURE),
-                            localUserSingleton.getUid(),
-                            (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS));
+        var userEmail = SharedPreferencesUtils.getDataByKey(this, Constants.UserFields.EMAIL);
+        var userPassword = SharedPreferencesUtils.getDataByKey(this, Constants.UserFields.PASSWORD);
 
-                        fetchUsersServiceIntent.putExtra(
-                            Constants.USERS_KEY, docSnap.getString(Constants.UserFields.FRIENDS));
-                        startService(fetchUsersServiceIntent);
-                        logger.success("Started Fetching Service, LoginActivity");
+        if (userEmail != null && userPassword != null) {
+            GetTextUtils.setInputText(binding.emailInput, userEmail);
+            GetTextUtils.setInputText(binding.passwordInput, userPassword);
+        }
 
-                        SharedPreferencesUtils.insertData(
-                            LoginActivity.this, Constants.UserFields.EMAIL, email);
-                        SharedPreferencesUtils.insertData(
-                            LoginActivity.this, Constants.UserFields.PASSWORD, password);
-                        logger.i("Inserted user credentials in shared preferences");
-                      },
-                      e -> {
-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                      });
+        Intent fetchUsersServiceIntent = new Intent(getApplicationContext(), FetchUsersService.class);
+        binding.loginButton.setOnClickListener(view -> {
+            String email = GetTextUtils.getTextFromInput(binding.emailInput);
+            String password = GetTextUtils.getTextFromInput(binding.passwordInput);
+
+            loginDisposable = signIn(email, password).doOnSubscribe(disposable -> {
+                binding.progressBar.setVisibility(VISIBLE);
+            }).observeOn(AndroidSchedulers.mainThread()).doOnSuccess(uid -> localUserSingleton.setUid(uid)).flatMap(this::retrieveUser).subscribe(docSnap -> {
+                localUserSingleton.initializeLocalUserSingleton(docSnap.getString(Constants.UserFields.FIRST_NAME), docSnap.getString(Constants.UserFields.SECOND_NAME),
+                        docSnap.getString(Constants.UserFields.EMAIL), docSnap.getString(Constants.UserFields.PROFILE_PICTURE), localUserSingleton.getUid(),
+                        (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS));
+
+                ArrayList<String> friends = (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS);
+                fetchUsersServiceIntent.putExtra(Constants.USERS_KEY, friends);
+                startService(fetchUsersServiceIntent);
+                logger.success("Started Fetching Service, LoginActivity");
+
+                SharedPreferencesUtils.insertData(LoginActivity.this, Constants.UserFields.EMAIL, email);
+                SharedPreferencesUtils.insertData(LoginActivity.this, Constants.UserFields.PASSWORD, password);
+                logger.i("Inserted user credentials in shared preferences");
+
+                startActivity(new Intent(LoginActivity.this, MainHomeActivity.class));
+            }, e -> {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
         });
 
-    binding.registerButton.setOnClickListener(
-        view -> {
-          Intent registerActivityIntent = new Intent(LoginActivity.this, RegisterActivity.class);
-          startActivity(registerActivityIntent);
+        binding.registerButton.setOnClickListener(view -> {
+            Intent registerActivityIntent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(registerActivityIntent);
         });
 
-    binding.forgotPasswordButton.setOnClickListener(
-        view -> {
-          Intent lostPasswordActivityIntent =
-              new Intent(LoginActivity.this, LostPasswordActivity.class);
-          startActivity(lostPasswordActivityIntent);
+        binding.forgotPasswordButton.setOnClickListener(view -> {
+            Intent lostPasswordActivityIntent = new Intent(LoginActivity.this, LostPasswordActivity.class);
+            startActivity(lostPasswordActivityIntent);
         });
-  }
-
-  protected Single<String> signIn(String email, String password) {
-    return Single.create(
-        emitter -> {
-          firebaseAuth
-              .signInWithEmailAndPassword(email, password)
-              .addOnSuccessListener(
-                  authResult -> {
-                    String uid = authResult.getUser().getUid();
-                    emitter.onSuccess(uid);
-                  })
-              .addOnFailureListener(emitter::onError);
-        });
-  }
-
-  protected Single<DocumentSnapshot> retrieveUser(String uid) {
-    return Single.create(
-        emitter -> {
-          FirebaseFirestore.getInstance()
-              .collection("users")
-              .document(uid)
-              .get()
-              .addOnSuccessListener(emitter::onSuccess)
-              .addOnFailureListener(emitter::onError);
-        });
-  }
-
-  @Override
-  protected void onDestroy() {
-    if (loginDisposable != null && !loginDisposable.isDisposed()) {
-      loginDisposable.dispose();
     }
-    super.onDestroy();
-  }
+
+    protected Single<String> signIn(String email, String password) {
+        return Single.create(emitter -> {
+            firebaseAuth.signInWithEmailAndPassword(email, password).addOnSuccessListener(authResult -> {
+                String uid = authResult.getUser().getUid();
+                emitter.onSuccess(uid);
+            }).addOnFailureListener(emitter::onError);
+        });
+    }
+
+    protected Single<DocumentSnapshot> retrieveUser(String uid) {
+        return Single.create(emitter -> {
+            FirebaseFirestore.getInstance().collection("users").document(uid).get().addOnSuccessListener(emitter::onSuccess).addOnFailureListener(emitter::onError);
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (loginDisposable != null && !loginDisposable.isDisposed()) {
+            loginDisposable.dispose();
+        }
+        super.onDestroy();
+    }
 }

@@ -16,10 +16,5 @@
 package com.example.nexus.applogger;
 
 public enum LogLevel {
-  VERBOSE,
-  DEBUG,
-  INFO,
-  SUCCESS,
-  WARNING,
-  ERROR
+    VERBOSE, DEBUG, INFO, SUCCESS, WARNING, ERROR
 }

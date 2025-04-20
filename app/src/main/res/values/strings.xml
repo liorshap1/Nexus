@@ -58,4 +58,6 @@
     <string name="create_an_account">Create an account</string>
     <string name="create_account">Create account</string>
     <string name="submit">Submit</string>
+    <string name="add_by_email">Add by Email</string>
+    <string name="send">Send</string>
 </resources>

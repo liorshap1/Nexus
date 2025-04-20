@@ -25,9 +25,9 @@ import javax.inject.Singleton;
 @Module
 @InstallIn(SingletonComponent.class)
 public class FirestoreModule {
-  @Provides
-  @Singleton
-  public static FirebaseFirestore provideFirestore() {
-    return FirebaseFirestore.getInstance();
-  }
+    @Provides
+    @Singleton
+    public static FirebaseFirestore provideFirestore() {
+        return FirebaseFirestore.getInstance();
+    }
 }

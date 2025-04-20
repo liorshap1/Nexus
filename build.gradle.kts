@@ -13,7 +13,6 @@ buildscript {
         mavenCentral()
     }
 }
-
 subprojects {
     apply(plugin = "com.diffplug.spotless")
 
@@ -22,7 +21,12 @@ subprojects {
             target("**/*.java")
             targetExclude("$layout/**/*.java")
 
-            googleJavaFormat("1.17.0") // Or your preferred version
+            // Replace this:
+            // googleJavaFormat("1.17.0")
+
+            // With this:
+            eclipse().configFile(rootProject.file("spotless/eclipse-java-formatter.xml"))
+
             licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
         }
 

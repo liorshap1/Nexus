@@ -32,7 +32,9 @@ import androidx.core.content.ContextCompat;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.authentication.LoginActivity;
 import com.example.nexus.core.LocalUserSingleton;
+import com.example.nexus.core.services.FetchUsersService;
 import com.example.nexus.databinding.ActivityMainBinding;
+import com.example.nexus.home.MainHomeActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -44,113 +46,103 @@ import javax.inject.Inject;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
-  @Inject LocalUserSingleton localUserSingleton;
-  @Inject FirebaseFirestore firebaseFirestore;
-  @Inject FirebaseAuth firebaseAuth;
-  @Inject AppLogger logger;
-  private ActivityMainBinding binding;
+    @Inject
+    LocalUserSingleton localUserSingleton;
+    @Inject
+    FirebaseFirestore firebaseFirestore;
+    @Inject
+    FirebaseAuth firebaseAuth;
+    @Inject
+    AppLogger logger;
+    private ActivityMainBinding binding;
 
-  private final ActivityResultLauncher<String> requestPermissionLauncher =
-      registerForActivityResult(
-          new ActivityResultContracts.RequestPermission(),
-          isGranted -> {
-            if (isGranted) {
-              logger.i("All permissions granted");
-            } else {
-              logger.w("Permissions are not granted");
+    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+        if (isGranted) {
+            logger.i("All permissions granted");
+        } else {
+            logger.w("Permissions are not granted");
+        }
+    });
+
+    @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private void askApplicationPermissions() {
+        String[] permissions = {android.Manifest.permission.INTERNET, android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.POST_NOTIFICATIONS,
+                Manifest.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING};
+
+        List<String> permissionsToRequest = new ArrayList<>();
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(permission);
             }
-          });
+        }
 
-  @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-  private void askApplicationPermissions() {
-    String[] permissions = {
-      android.Manifest.permission.INTERNET,
-      android.Manifest.permission.RECORD_AUDIO,
-      android.Manifest.permission.POST_NOTIFICATIONS,
-      Manifest.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING
-    };
-
-    List<String> permissionsToRequest = new ArrayList<>();
-    for (String permission : permissions) {
-      if (ContextCompat.checkSelfPermission(this, permission)
-          != PackageManager.PERMISSION_GRANTED) {
-        permissionsToRequest.add(permission);
-      }
+        if (!permissionsToRequest.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), Constants.REQUEST_CODE);
+        }
     }
 
-    if (!permissionsToRequest.isEmpty()) {
-      ActivityCompat.requestPermissions(
-          this, permissionsToRequest.toArray(new String[0]), Constants.REQUEST_CODE);
-    }
-  }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    binding = ActivityMainBinding.inflate(getLayoutInflater());
-    setContentView(binding.getRoot());
+        firebaseAuth = FirebaseAuth.getInstance();
+        firebaseFirestore = FirebaseFirestore.getInstance();
 
-    firebaseAuth = FirebaseAuth.getInstance();
-    firebaseFirestore = FirebaseFirestore.getInstance();
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-        askApplicationPermissions();
-      }
-    }
-  }
-
-  @Override
-  protected void onStart() {
-    super.onStart();
-
-    binding.lottieAnimation.addAnimatorListener(
-        new AnimatorListenerAdapter() {
-          @Override
-          public void onAnimationEnd(@NonNull Animator animation) {
-            FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-            if (firebaseUser != null) {
-              retrieveLocalUser(
-                  firebaseUser.getUid(),
-                  doc -> {
-                    localUserSingleton.initializeLocalUserSingleton(
-                        doc.getString(Constants.UserFields.FIRST_NAME),
-                        doc.getString(Constants.UserFields.SECOND_NAME),
-                        doc.getString(Constants.UserFields.EMAIL),
-                        doc.getString(Constants.UserFields.PROFILE_PICTURE),
-                        firebaseUser.getUid(),
-                        (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
-                  });
-            } else {
-              startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                askApplicationPermissions();
             }
-          }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Intent fetchUsersServiceIntent = new Intent(getApplicationContext(), FetchUsersService.class);
+        binding.lottieAnimation.addAnimatorListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(@NonNull Animator animation) {
+                FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                if (firebaseUser != null) {
+                    retrieveLocalUser(firebaseUser.getUid(), doc -> {
+                        localUserSingleton.initializeLocalUserSingleton(firebaseUser.getUid(), doc.getString(Constants.UserFields.FIRST_NAME), doc.getString(Constants.UserFields.SECOND_NAME),
+                                doc.getString(Constants.UserFields.EMAIL), doc.getString(Constants.UserFields.PROFILE_PICTURE), (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
+
+                        ArrayList<String> friends = (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS);
+                        if (friends != null) {
+                            fetchUsersServiceIntent.putStringArrayListExtra(Constants.USERS_KEY, friends);
+                            startService(fetchUsersServiceIntent);
+                        }
+                    });
+                    startActivity(new Intent(MainActivity.this, MainHomeActivity.class));
+                } else {
+                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                }
+            }
         });
-  }
+    }
 
-  protected void retrieveLocalUser(String uid, Callback callback) {
-    firebaseFirestore
-        .collection(Constants.Firestore.USERS_COLLECTION)
-        .document(uid)
-        .get()
-        .addOnCompleteListener(
-            task -> {
-              if (task.isSuccessful()) {
+    protected void retrieveLocalUser(String uid, Callback callback) {
+        firebaseFirestore.collection(Constants.Firestore.USERS_COLLECTION).document(uid).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
                 DocumentSnapshot documentSnapshot = task.getResult();
-                if (documentSnapshot.exists()) callback.onComplete(documentSnapshot);
+                if (documentSnapshot.exists())
+                    callback.onComplete(documentSnapshot);
 
                 logger.success("Retrieved snapshot for: " + uid);
-              }
-            })
-        .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
-  }
+            }
+        }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+    }
 
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-  }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
-  interface Callback {
-    void onComplete(DocumentSnapshot docSnap);
-  }
+    interface Callback {
+        void onComplete(DocumentSnapshot docSnap);
+    }
 }

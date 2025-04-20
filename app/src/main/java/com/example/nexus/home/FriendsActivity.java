@@ -15,27 +15,154 @@
  */
 package com.example.nexus.home;
 
+import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
-import androidx.activity.EdgeToEdge;
+import android.os.IBinder;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import com.example.nexus.R;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import com.example.nexus.Constants;
+import com.example.nexus.adapters.PendingRequestsAdapter;
+import com.example.nexus.applogger.AppLogger;
+import com.example.nexus.core.LocalUserSingleton;
+import com.example.nexus.core.User;
+import com.example.nexus.core.services.FetchUsersService;
+import com.example.nexus.databinding.ActivityFriendsBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import dagger.hilt.android.AndroidEntryPoint;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 
+@AndroidEntryPoint
 public class FriendsActivity extends AppCompatActivity {
+    @Inject
+    AppLogger logger;
+    @Inject
+    LocalUserSingleton localUserSingleton;
+    @Inject
+    FirebaseFirestore firestore;
+    private List<User> pendingUsersList = new ArrayList<>();
+    private ActivityFriendsBinding binding;
+    private FetchUsersService fetchUsersService;
+    private PendingRequestsAdapter pendingRequestsAdapter;
+    private boolean isBound = false;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    EdgeToEdge.enable(this);
-    setContentView(R.layout.activity_friends);
-    ViewCompat.setOnApplyWindowInsetsListener(
-        findViewById(R.id.main),
-        (v, insets) -> {
-          Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-          v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-          return insets;
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            FetchUsersService.LocalBinder binder = (FetchUsersService.LocalBinder) iBinder;
+            fetchUsersService = binder.getService();
+
+            // Initialize RecyclerView **after** service is ready
+            pendingRequestsAdapter = new PendingRequestsAdapter(pendingUsersList, localUserSingleton, firestore, logger, fetchUsersService);
+            binding.pendingRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(FriendsActivity.this));
+            binding.pendingRequestsRecyclerView.setAdapter(pendingRequestsAdapter);
+
+            isBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            isBound = false;
+            fetchUsersService = null;
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityFriendsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Intent intent = new Intent(this, FetchUsersService.class);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+
+        DocumentReference docRef = firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUserSingleton.getUid());
+
+        docRef.addSnapshotListener((value, error) -> {
+            if (error != null) {
+                logger.e(error.getMessage(), error.getCause());
+                return;
+            }
+
+            if (value != null && value.exists()) {
+                ArrayList<String> currentPendingRequestsList = (ArrayList<String>) value.get(Constants.UserFields.PENDING_REQUESTS);
+                if (currentPendingRequestsList != null) {
+                    pendingUsersList.clear();
+
+                    if (currentPendingRequestsList.isEmpty()) {
+                        pendingRequestsAdapter.notifyDataSetChanged();
+                        return;
+                    }
+
+                    final int total = currentPendingRequestsList.size();
+                    final int[] completed = {0};
+
+                    for (String uid : currentPendingRequestsList) {
+                        fetchUser(uid, () -> {
+                            completed[0]++;
+                            if (completed[0] == total) {
+                                logger.i("All users fetched. Notifying adapter.");
+                                pendingRequestsAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                }
+            }
         });
-  }
+
+        binding.backButton.setOnClickListener(view -> finish());
+    }
+
+    private void fetchUser(String uid, Runnable onComplete) {
+        firestore.collection(Constants.Firestore.USERS_COLLECTION).document(uid).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot docSnap = task.getResult();
+                if (docSnap.exists()) {
+                    String first = docSnap.getString(Constants.UserFields.FIRST_NAME);
+                    String last = docSnap.getString(Constants.UserFields.SECOND_NAME);
+                    String email = docSnap.getString(Constants.UserFields.EMAIL);
+                    String pic = docSnap.getString(Constants.UserFields.PROFILE_PICTURE);
+
+                    if (first == null || last == null || email == null) {
+                        logger.w("Incomplete data for UID: " + uid);
+                        onComplete.run();
+                        return;
+                    }
+
+                    User user = new User(uid, first, last, email, pic);
+                    pendingUsersList.add(user);
+                }
+            }
+            onComplete.run();
+        }).addOnFailureListener(e -> {
+            logger.e(e.getMessage(), e.getCause());
+            onComplete.run();
+        });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (isBound) {
+            unbindService(serviceConnection);
+            isBound = false;
+        }
+    }
 }
