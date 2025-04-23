@@ -15,25 +15,47 @@
  */
 package com.example.nexus.adapters;
 
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.nexus.R;
 
 public class SuggestedViewHolder extends RecyclerView.ViewHolder {
     private final TextView username;
     private final TextView email;
+    private final ImageView profilePicture;
 
     public SuggestedViewHolder(@NonNull View itemView) {
         super(itemView);
 
         username = itemView.findViewById(R.id.user_name);
         email = itemView.findViewById(R.id.user_email);
+        profilePicture = itemView.findViewById(R.id.profileImage);
+
+        if (username == null || email == null) {
+            Log.e("VH_BIND", "ViewHolder failed to find one of the text views!");
+        }
     }
 
     public void bind(String username, String email) {
         this.username.setText(username);
         this.email.setText(email);
+    }
+
+    public TextView getUsername() {
+        return username;
+    }
+
+    public TextView getEmail() {
+        return email;
+    }
+
+    public ImageView getProfilePicture() {
+        return profilePicture;
     }
 }

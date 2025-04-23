@@ -60,4 +60,11 @@
     <string name="submit">Submit</string>
     <string name="add_by_email">Add by Email</string>
     <string name="send">Send</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="we_will_restore_your_account">We will restore your account!</string>
+    <string name="don_t_worry">Don\'t worry!</string>
+    <string name="floating_image">Floating image</string>
+    <string name="sign_out">Sign out</string>
+    <string name="place_holder">PLACE_HOLDER</string>
 </resources>

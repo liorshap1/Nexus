@@ -22,9 +22,9 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
 import com.example.nexus.Constants;
 import com.example.nexus.adapters.PendingRequestsAdapter;
 import com.example.nexus.applogger.AppLogger;
@@ -32,16 +32,17 @@ import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.core.User;
 import com.example.nexus.core.services.FetchUsersService;
 import com.example.nexus.databinding.ActivityFriendsBinding;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import dagger.hilt.android.AndroidEntryPoint;
+import com.google.firebase.storage.FirebaseStorage;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class FriendsActivity extends AppCompatActivity {
@@ -51,6 +52,8 @@ public class FriendsActivity extends AppCompatActivity {
     LocalUserSingleton localUserSingleton;
     @Inject
     FirebaseFirestore firestore;
+    @Inject
+    FirebaseStorage firebaseStorage;
     private List<User> pendingUsersList = new ArrayList<>();
     private ActivityFriendsBinding binding;
     private FetchUsersService fetchUsersService;
@@ -63,8 +66,7 @@ public class FriendsActivity extends AppCompatActivity {
             FetchUsersService.LocalBinder binder = (FetchUsersService.LocalBinder) iBinder;
             fetchUsersService = binder.getService();
 
-            // Initialize RecyclerView **after** service is ready
-            pendingRequestsAdapter = new PendingRequestsAdapter(pendingUsersList, localUserSingleton, firestore, logger, fetchUsersService);
+            pendingRequestsAdapter = new PendingRequestsAdapter(pendingUsersList, localUserSingleton, firestore, logger, firebaseStorage, FriendsActivity.this);
             binding.pendingRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(FriendsActivity.this));
             binding.pendingRequestsRecyclerView.setAdapter(pendingRequestsAdapter);
 
@@ -94,7 +96,6 @@ public class FriendsActivity extends AppCompatActivity {
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
 
         DocumentReference docRef = firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUserSingleton.getUid());
-
         docRef.addSnapshotListener((value, error) -> {
             if (error != null) {
                 logger.e(error.getMessage(), error.getCause());

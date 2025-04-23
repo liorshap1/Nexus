@@ -11,6 +11,13 @@
         android:orientation="horizontal"
         android:padding="5dp">
 
+        <ImageView
+            android:id="@+id/profileImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:contentDescription="TODO" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -22,7 +29,7 @@
                 android:id="@+id/user_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/ggsans_bold"
+                android:fontFamily="@font/inter_semibold"
                 android:text="USERNAME"
                 android:textColor="@color/white"
                 android:textSize="14sp" />
@@ -31,7 +38,7 @@
                 android:id="@+id/user_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/ggsans_medium"
+                android:fontFamily="@font/inter_medium"
                 android:text="EMAIL"
                 android:textColor="@color/gray_400"
                 android:textSize="12sp" />

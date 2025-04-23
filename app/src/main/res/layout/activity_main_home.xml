@@ -22,6 +22,11 @@
     <!-- your full‑screen Bottom Sheet -->
 
     <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
         android:id="@+id/bottomSheet"
         style="@style/Widget.Material3.BottomSheet"
         android:layout_width="match_parent"
@@ -150,7 +155,6 @@
         </LinearLayout>
     </FrameLayout>
 
-
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
@@ -158,12 +162,10 @@
 
         app:backgroundTint="@color/background_default"
         app:itemIconTint="@color/white"
-
         app:itemRippleColor="@color/white"
         app:itemTextColor="@color/white"
         app:layout_anchor="@id/bottomSheet"
         app:layout_anchorGravity="bottom"
         app:menu="@menu/bottom_menu" />
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

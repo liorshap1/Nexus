@@ -27,11 +27,13 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
 import com.example.nexus.Constants;
 import com.example.nexus.core.Message;
 import com.example.nexus.core.User;
@@ -43,7 +45,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
+
 import java.util.ArrayList;
+
 import javax.inject.Inject;
 
 public class NotificationsService extends Service {
@@ -106,8 +110,8 @@ public class NotificationsService extends Service {
         var sensitizedUserJson = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + message.getMessageDeliverUid());
         User user = gson.fromJson(sensitizedUserJson, User.class);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "chat_channel_id").setContentTitle(user.getFullName()).setContentText("Sent: " + message.getText())
-                .setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "chat_channel_id").setContentTitle(user.getFullName())
+                .setContentText("Sent: " + message.getText()).setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true);
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

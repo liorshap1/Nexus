@@ -16,11 +16,14 @@
 package com.example.nexus.authentication;
 
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.databinding.ActivityLostPasswordBinding;
 import com.example.nexus.utils.GetTextUtils;
 import com.google.firebase.auth.FirebaseAuth;
+
 import javax.inject.Inject;
 
 public class LostPasswordActivity extends AppCompatActivity {
@@ -43,7 +46,8 @@ public class LostPasswordActivity extends AppCompatActivity {
 
         binding.submitButton.setOnClickListener(view -> {
             String userEmail = GetTextUtils.getTextFromInput(binding.emailInput);
-            firebaseAuth.sendPasswordResetEmail(userEmail).addOnSuccessListener(unused -> logger.i("Sent password reset link")).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+            firebaseAuth.sendPasswordResetEmail(userEmail).addOnSuccessListener(unused -> logger.i("Sent password reset link"))
+                    .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
         });
 
         binding.backButton.setOnClickListener(view -> {

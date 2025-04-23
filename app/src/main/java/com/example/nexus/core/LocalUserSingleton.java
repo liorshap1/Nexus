@@ -15,7 +15,10 @@
  */
 package com.example.nexus.core;
 
+import com.example.nexus.Constants;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class LocalUserSingleton extends BaseUser {
     private ArrayList<String> friends;
@@ -31,6 +34,15 @@ public class LocalUserSingleton extends BaseUser {
         setEmail(email);
         setProfilePicture(profilePicture);
         this.friends = friends;
+    }
+
+    public void initializeLocalUserSingleton(HashMap<String, Object> userMap) {
+        setUid((String) userMap.get(Constants.UserFields.UID));
+        setFirstName((String) userMap.get(Constants.UserFields.FIRST_NAME));
+        setSecondName((String) userMap.get(Constants.UserFields.SECOND_NAME));
+        setFriends((ArrayList<String>) userMap.get(Constants.UserFields.FRIENDS));
+        setEmail((String) userMap.get(Constants.UserFields.EMAIL));
+        setProfilePicture((String) userMap.get(Constants.UserFields.PROFILE_PICTURE));
     }
 
     public ArrayList<String> getFriends() {

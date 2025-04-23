@@ -35,31 +35,6 @@ public class Constants {
         public static final String PASSWORD = "password";
     }
 
-    // Firebase Authentication Errors
-    public static class AuthErrors {
-        public static final String INVALID_EMAIL = "ERROR_INVALID_EMAIL";
-        public static final String USER_NOT_FOUND = "ERROR_USER_NOT_FOUND";
-        public static final String WRONG_PASSWORD = "ERROR_WRONG_PASSWORD";
-        public static final String EMAIL_ALREADY_IN_USE = "ERROR_EMAIL_ALREADY_IN_USE";
-        public static final String USER_DISABLED = "ERROR_USER_DISABLED";
-        public static final String WEAK_PASSWORD = "ERROR_WEAK_PASSWORD";
-    }
-
-    // Firebase Realtime Database Errors
-    public static class RealtimeDatabaseErrors {
-        public static final String PERMISSION_DENIED = "ERROR_PERMISSION_DENIED";
-        public static final String NETWORK_ERROR = "ERROR_NETWORK";
-    }
-
-    // Firebase Firestore Errors
-    public static class FirestoreErrors {
-        public static final String DOCUMENT_NOT_FOUND = "ERROR_DOCUMENT_NOT_FOUND";
-        public static final String ALREADY_EXISTS = "ERROR_ALREADY_EXISTS";
-        public static final String UNAVAILABLE = "ERROR_UNAVAILABLE";
-        public static final String DEADLINE_EXCEEDED = "ERROR_DEADLINE_EXCEEDED";
-        public static final String PERMISSION_DENIED = "ERROR_PERMISSION_DENIED";
-    }
-
     public static class Firestore {
         public static final String USERS_COLLECTION = "_users";
     }
@@ -75,5 +50,10 @@ public class Constants {
         public static final String MESSAGE = "message";
         public static final String SENDER_NAME = "sender_name";
         public static final String TIMESTAMP = "timestamp";
+    }
+
+    public static class ChatsActivity {
+        public static final String USER = "user";
+
     }
 }

@@ -66,4 +66,8 @@ dependencies {
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
     implementation("io.reactivex.rxjava3:rxjava:3.1.10")
     implementation("com.google.firebase:firebase-database")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-perf")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }

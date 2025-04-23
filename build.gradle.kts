@@ -5,6 +5,7 @@ plugins {
     id("com.google.dagger.hilt.android") version "2.51.1" apply false
     id("com.diffplug.spotless") version "7.0.3"
     id("com.google.gms.google-services") version "4.4.2" apply false
+    id("com.google.firebase.firebase-perf") version "1.4.2" apply false
 }
 
 buildscript {

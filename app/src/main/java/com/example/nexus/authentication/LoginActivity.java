@@ -21,7 +21,9 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.nexus.Constants;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
@@ -33,12 +35,15 @@ import com.example.nexus.utils.SharedPreferencesUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
-import java.util.ArrayList;
-import javax.inject.Inject;
 
 @AndroidEntryPoint
 public class LoginActivity extends AppCompatActivity {
@@ -66,7 +71,6 @@ public class LoginActivity extends AppCompatActivity {
 
         var userEmail = SharedPreferencesUtils.getDataByKey(this, Constants.UserFields.EMAIL);
         var userPassword = SharedPreferencesUtils.getDataByKey(this, Constants.UserFields.PASSWORD);
-
         if (userEmail != null && userPassword != null) {
             GetTextUtils.setInputText(binding.emailInput, userEmail);
             GetTextUtils.setInputText(binding.passwordInput, userPassword);

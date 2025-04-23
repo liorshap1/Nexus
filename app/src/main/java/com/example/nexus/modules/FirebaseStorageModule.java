@@ -13,8 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.nexus.core.services;
+package com.example.nexus.modules;
 
-public interface IFetchUsersService {
+import com.google.firebase.storage.FirebaseStorage;
 
+import javax.inject.Singleton;
+
+import dagger.Module;
+import dagger.Provides;
+import dagger.hilt.InstallIn;
+import dagger.hilt.components.SingletonComponent;
+
+@Module
+@InstallIn(SingletonComponent.class)
+public class FirebaseStorageModule {
+    @Provides
+    @Singleton
+    public static FirebaseStorage provideFirebaseStorage() {
+        return FirebaseStorage.getInstance();
+    }
 }

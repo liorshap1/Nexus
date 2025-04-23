@@ -7,6 +7,7 @@
     <color name="gray_800">#1F1F1F</color>
     <color name="gray_700">#18181b</color>
     <color name="gray_400">#878787</color>
+    <color name="gray_600">#52525b</color>
     <color name="gray_100">#A1A1A1</color>
 
     <!-- Tailwind Blue Scale -->

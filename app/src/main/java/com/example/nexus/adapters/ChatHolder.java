@@ -13,8 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.nexus.core.services;
+package com.example.nexus.adapters;
 
-public interface IFetchUsersService {
+import android.view.View;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.nexus.R;
+
+public class ChatHolder extends RecyclerView.ViewHolder {
+    private final TextView message;
+
+    public ChatHolder(@NonNull View itemView) {
+        super(itemView);
+
+        message = itemView.findViewById(R.id.text);
+    }
+
+    public void bind(String text) {
+        message.setText(text);
+    }
 }

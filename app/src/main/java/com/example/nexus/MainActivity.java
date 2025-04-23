@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -29,6 +30,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.authentication.LoginActivity;
 import com.example.nexus.core.LocalUserSingleton;
@@ -39,10 +41,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import dagger.hilt.android.AndroidEntryPoint;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
@@ -55,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     @Inject
     AppLogger logger;
     private ActivityMainBinding binding;
+    private Intent fetchUsersServiceIntent;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         if (isGranted) {
@@ -95,29 +101,26 @@ public class MainActivity extends AppCompatActivity {
                 askApplicationPermissions();
             }
         }
+
+        fetchUsersServiceIntent = new Intent(getApplicationContext(), FetchUsersService.class);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        Intent fetchUsersServiceIntent = new Intent(getApplicationContext(), FetchUsersService.class);
         binding.lottieAnimation.addAnimatorListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(@NonNull Animator animation) {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                 if (firebaseUser != null) {
-                    retrieveLocalUser(firebaseUser.getUid(), doc -> {
-                        localUserSingleton.initializeLocalUserSingleton(firebaseUser.getUid(), doc.getString(Constants.UserFields.FIRST_NAME), doc.getString(Constants.UserFields.SECOND_NAME),
-                                doc.getString(Constants.UserFields.EMAIL), doc.getString(Constants.UserFields.PROFILE_PICTURE), (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
+                    retrieveLocalUserOnce(firebaseUser.getUid(), doc -> {
+                        localUserSingleton.initializeLocalUserSingleton(firebaseUser.getUid(), doc.getString(Constants.UserFields.FIRST_NAME),
+                                doc.getString(Constants.UserFields.SECOND_NAME), doc.getString(Constants.UserFields.EMAIL), doc.getString(Constants.UserFields.PROFILE_PICTURE),
+                                (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
 
-                        ArrayList<String> friends = (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS);
-                        if (friends != null) {
-                            fetchUsersServiceIntent.putStringArrayListExtra(Constants.USERS_KEY, friends);
-                            startService(fetchUsersServiceIntent);
-                        }
+                        startService(fetchUsersServiceIntent);
+                        startActivity(new Intent(MainActivity.this, MainHomeActivity.class));
                     });
-                    startActivity(new Intent(MainActivity.this, MainHomeActivity.class));
                 } else {
                     startActivity(new Intent(MainActivity.this, LoginActivity.class));
                 }
@@ -125,16 +128,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    protected void retrieveLocalUser(String uid, Callback callback) {
-        firebaseFirestore.collection(Constants.Firestore.USERS_COLLECTION).document(uid).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot documentSnapshot = task.getResult();
-                if (documentSnapshot.exists())
-                    callback.onComplete(documentSnapshot);
-
-                logger.success("Retrieved snapshot for: " + uid);
-            }
-        }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+    protected void retrieveLocalUserOnce(String uid, Callback callback) {
+        firebaseFirestore.collection(Constants.Firestore.USERS_COLLECTION).document(uid).get() // <-- one-time network + cache fetch
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        logger.success("Retrieved snapshot for: " + uid);
+                        callback.onComplete(doc);
+                    } else {
+                        logger.w("No LocalUser doc for: " + uid);
+                    }
+                }).addOnFailureListener(e -> logger.e("Failed to retrieve LocalUser: " + uid, e));
     }
 
     @Override

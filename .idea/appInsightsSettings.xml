@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.nexus" />
-                  <option name="mobileSdkAppId" value="1:635106063986:android:2fa8e1731c63bf363334eb" />
-                  <option name="projectId" value="mychat-e718b" />
-                  <option name="projectNumber" value="635106063986" />
+                  <option name="mobileSdkAppId" value="1:207746476596:android:d8f3986465ddecea8a3861" />
+                  <option name="projectId" value="nexus-cd95e" />
+                  <option name="projectNumber" value="207746476596" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

@@ -90,7 +90,7 @@ public abstract class BaseUser {
 
     @Override
     public String toString() {
-        return "BaseUser{" + "uid='" + uid + '\'' + ", firstName='" + firstName + '\'' + ", secondName='" + secondName + '\'' + ", email='" + email + '\'' + ", profilePicture='" + profilePicture
-                + '\'' + '}';
+        return "BaseUser{" + "uid='" + uid + '\'' + ", firstName='" + firstName + '\'' + ", secondName='" + secondName + '\'' + ", email='" + email + '\'' + ", profilePicture='"
+                + profilePicture + '\'' + '}';
     }
 }

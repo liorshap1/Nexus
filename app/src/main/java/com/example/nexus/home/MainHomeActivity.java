@@ -18,6 +18,7 @@ package com.example.nexus.home;
 import static android.view.View.INVISIBLE;
 import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED;
 import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HALF_EXPANDED;
+import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN;
 
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
@@ -25,72 +26,82 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.nexus.R;
 import com.example.nexus.adapters.SuggestedAdapter;
 import com.example.nexus.applogger.AppLogger;
-import com.example.nexus.core.User;
 import com.example.nexus.core.services.FetchUsersService;
 import com.example.nexus.databinding.ActivityMainHomeBinding;
+import com.example.nexus.home.fragments.ChatsFragment;
+import com.example.nexus.home.fragments.MenuFragment;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.firebase.storage.FirebaseStorage;
+
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import java.util.ArrayList;
-import java.util.List;
-import javax.inject.Inject;
 
 @AndroidEntryPoint
 public class MainHomeActivity extends AppCompatActivity {
-    private final List<User> allUserList = new ArrayList<>();
-    private final List<User> filteredList = new ArrayList<>();
     @Inject
-    AppLogger appLogger;
-    private ActivityMainHomeBinding binding;
-    private FetchUsersService fetchUsersService;
-    private SuggestedAdapter suggestedAdapter;
-    private boolean isBound;
+    AppLogger logger;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
-        @SuppressLint("CheckResult")
+        @SuppressLint({"CheckResult", "NotifyDataSetChanged"})
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             FetchUsersService.LocalBinder binder = (FetchUsersService.LocalBinder) iBinder;
             fetchUsersService = binder.getService();
             isBound = true;
 
-            appLogger.success("Service connected. Subscribing to users...");
-            fetchUsersService.getUsersObservable().observeOn(AndroidSchedulers.mainThread()).subscribe(users -> {
-                allUserList.clear();
-                filteredList.clear();
+            fetchUsersService.observeCurrentUsers().observeOn(AndroidSchedulers.mainThread()).subscribe(list -> {
+                if (list != null) {
+                    suggestedAdapter.setUsers(list);
+                }
+            }, error -> {
+                logger.e("Error observing users: " + error.getMessage(), error);
+            });
 
-                allUserList.addAll(users);
-                filteredList.addAll(users);
-                suggestedAdapter.notifyDataSetChanged();
-
-            }, throwable -> appLogger.e("Error observing users", throwable));
+            logger.success("FetchUsersService bounded to MainHomeActivity");
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             isBound = false;
             fetchUsersService = null;
-            appLogger.w("Service disconnected");
+            logger.w("Service disconnected");
         }
     };
+    private ActivityMainHomeBinding binding;
+    private FetchUsersService fetchUsersService;
+    private SuggestedAdapter suggestedAdapter;
+    @Inject
+    FirebaseStorage firebaseStorage;
+    private FragmentManager fragmentManager;
+    private ChatsFragment chatsFragment;
+    private boolean isBound;
+    private MenuFragment menuFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         binding = ActivityMainHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        suggestedAdapter = new SuggestedAdapter(filteredList);
-        binding.suggestedRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        binding.suggestedRecyclerView.setAdapter(suggestedAdapter);
+        suggestedAdapter = new SuggestedAdapter(getApplicationContext(), firebaseStorage, logger);
+        fragmentManager = getSupportFragmentManager();
+        chatsFragment = new ChatsFragment();
+        menuFragment = new MenuFragment();
 
         isBound = false;
     }
@@ -99,9 +110,41 @@ public class MainHomeActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+        binding.suggestedRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        binding.suggestedRecyclerView.setAdapter(suggestedAdapter);
+
         Intent serviceIntent = new Intent(this, FetchUsersService.class);
-        startService(serviceIntent);
         bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
+
+        binding.suggestedRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                logger.i(rv.toString());
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+            }
+        });
+
+        fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), chatsFragment).addToBackStack(null).commit();
+        binding.bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.homeItem) {
+                fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), chatsFragment).addToBackStack(null).commit();
+                return true;
+            }
+            if (itemId == R.id.menuItem) {
+                fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), menuFragment).addToBackStack(null).commit();
+                return true;
+            }
+            return true;
+        });
 
         BottomSheetBehavior<FrameLayout> bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
         bottomSheetBehavior.setDraggable(true);
@@ -115,7 +158,7 @@ public class MainHomeActivity extends AppCompatActivity {
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                if (newState == STATE_COLLAPSED) {
+                if (newState == STATE_COLLAPSED || newState == STATE_HIDDEN) {
                     binding.openFriends.setVisibility(View.VISIBLE);
                 }
             }
@@ -128,41 +171,6 @@ public class MainHomeActivity extends AppCompatActivity {
         binding.addFriendsButton.setOnClickListener(view -> {
             Intent intent = new Intent(this, FriendsActivity.class);
             startActivity(intent);
-        });
-
-        binding.searchInput.getEditText().addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (charSequence == null || charSequence.toString().trim().isEmpty()) {
-                    filteredList.clear();
-                    filteredList.addAll(allUserList);
-                    suggestedAdapter.notifyDataSetChanged();
-                } else {
-                    filteredList.clear();
-                    String lowerQuery = charSequence.toString().toLowerCase();
-                    for (User user : allUserList) {
-                        boolean matchesFirst = user.getFirstName() != null && user.getFirstName().toLowerCase().contains(lowerQuery);
-                        boolean matchesLast = user.getSecondName() != null && user.getSecondName().toLowerCase().contains(lowerQuery);
-                        boolean matchesEmail = user.getEmail() != null && user.getEmail().toLowerCase().contains(lowerQuery);
-
-                        if (matchesFirst || matchesLast || matchesEmail) {
-                            filteredList.add(user); // Add only relevant results
-                        }
-                    }
-                }
-
-                suggestedAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
         });
     }
 

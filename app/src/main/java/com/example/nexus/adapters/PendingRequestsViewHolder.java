@@ -16,9 +16,12 @@
 package com.example.nexus.adapters;
 
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.nexus.R;
 import com.google.android.material.button.MaterialButton;
 
@@ -27,6 +30,7 @@ public class PendingRequestsViewHolder extends RecyclerView.ViewHolder {
     private final TextView email;
     private final MaterialButton addButton;
     private final MaterialButton removeButton;
+    private final ImageView profileImage;
 
     public PendingRequestsViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -35,6 +39,7 @@ public class PendingRequestsViewHolder extends RecyclerView.ViewHolder {
         email = itemView.findViewById(R.id.user_email);
         addButton = itemView.findViewById(R.id.addButton);
         removeButton = itemView.findViewById(R.id.removeButton);
+        profileImage = itemView.findViewById(R.id.profileImage);
     }
 
     public void bind(String username, String email) {
@@ -45,8 +50,11 @@ public class PendingRequestsViewHolder extends RecyclerView.ViewHolder {
     public MaterialButton getAddButton() {
         return addButton;
     }
-
     public MaterialButton getRemoveButton() {
         return removeButton;
+    }
+
+    public ImageView getProfileImage() {
+        return profileImage;
     }
 }
