@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 Lior Shaposhnikov
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.example.nexus.home;
 
 import android.content.Intent;
@@ -30,7 +45,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ChangeSettingActivity extends AppCompatActivity {
-    private Map<String,String> dictionary = new HashMap<>();
+    private Map<String, String> dictionary = new HashMap<>();
     private String FIELD_TO_CHANGE;
     ActivityChatBinding binding;
     @Inject
@@ -46,7 +61,6 @@ public class ChangeSettingActivity extends AppCompatActivity {
         binding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         initializeDictionary();
-
 
         Intent intent = getIntent();
         FIELD_TO_CHANGE = intent.getStringExtra(Constants.ChangeSettingActivity.CHANGE_SETTING);
@@ -76,16 +90,15 @@ public class ChangeSettingActivity extends AppCompatActivity {
         binding.backButton.setOnClickListener(view -> finish());
     }
 
-    private void changeSetting(String FIELD_TO_CHANGE, String VALUE, Callback callback){
+    private void changeSetting(String FIELD_TO_CHANGE, String VALUE, Callback callback) {
         Map<String, Object> data = new HashMap<>();
         data.put(FIELD_TO_CHANGE, VALUE);
 
-        firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUserSingleton.getUid()).update(data)
-                .addOnCompleteListener(task -> callback.onComplete())
+        firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUserSingleton.getUid()).update(data).addOnCompleteListener(task -> callback.onComplete())
                 .addOnFailureListener(callback::onError);
     }
 
-    private void initializeDictionary(){
+    private void initializeDictionary() {
         dictionary.put(Constants.UserFields.EMAIL, "Enter new email: ");
         dictionary.put(Constants.UserFields.PASSWORD, "Enter new password: ");
         dictionary.put(Constants.UserFields.FIRST_NAME, "Enter your full name");

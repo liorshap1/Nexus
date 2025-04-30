@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 Lior Shaposhnikov
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.example.nexus.core.services;
 
 import static com.example.nexus.Constants.FOREGROUND_NOTIFICATION_ID;
@@ -68,11 +83,8 @@ public class NotificationsService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
 
-        NotificationCompat.Builder foregroundBuilder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID)
-                .setContentTitle("Notification Service Running")
-                .setContentText("Listening for new messages")
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setSmallIcon(R.drawable.gradient_button); // <-- חובה!
+        NotificationCompat.Builder foregroundBuilder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID).setContentTitle("Notification Service Running")
+                .setContentText("Listening for new messages").setPriority(NotificationCompat.PRIORITY_LOW).setSmallIcon(R.drawable.gradient_button); // <-- חובה!
 
         startForeground(FOREGROUND_NOTIFICATION_ID, foregroundBuilder.build());
 
@@ -95,8 +107,7 @@ public class NotificationsService extends Service {
             String channelDescription = "Nexus Notifications Center";
             int channelImportance = NotificationManager.IMPORTANCE_DEFAULT;
 
-            NotificationChannel notificationChannel = new NotificationChannel(
-                    Constants.CHAT_CHANNEL_ID, channelTitle, channelImportance);
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.CHAT_CHANNEL_ID, channelTitle, channelImportance);
             notificationChannel.setDescription(channelDescription);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
@@ -110,17 +121,12 @@ public class NotificationsService extends Service {
         var sensitizedUserJson = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + message.getMessageDeliverUid());
         User user = gson.fromJson(sensitizedUserJson, User.class);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID)
-                .setContentTitle(user.getFullName())
-                .setContentText("Sent: " + message.getText())
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .setSmallIcon(R.drawable.gradient_button);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID).setContentTitle(user.getFullName())
+                .setContentText("Sent: " + message.getText()).setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).setSmallIcon(R.drawable.gradient_button);
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 Log.e("ChatNotificationService", "POST_NOTIFICATIONS permission not granted");
                 return;
             }
@@ -130,8 +136,7 @@ public class NotificationsService extends Service {
     }
 
     private void startServiceListener(String chatId) {
-        messagesRef = firebaseDatabase.getReference(Constants.FIREBASE_DATABASE.CHATS)
-                .child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
+        messagesRef = firebaseDatabase.getReference(Constants.FIREBASE_DATABASE.CHATS).child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
 
         messageListener = new ChildEventListener() {
             @Override
@@ -146,10 +151,18 @@ public class NotificationsService extends Service {
                 }
             }
 
-            @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
-            @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
-            @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            }
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+            }
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
         };
 
         messagesRef.addChildEventListener(messageListener);

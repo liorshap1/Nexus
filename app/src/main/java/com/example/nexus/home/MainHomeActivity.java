@@ -89,7 +89,6 @@ public class MainHomeActivity extends AppCompatActivity {
     @Inject
     AppLogger logger;
 
-
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @SuppressLint({"CheckResult", "NotifyDataSetChanged"})
         @Override
@@ -148,7 +147,6 @@ public class MainHomeActivity extends AppCompatActivity {
                 logger.e(e.getMessage(), e);
             }
         });
-
 
         isBound = false;
     }
@@ -243,32 +241,28 @@ public class MainHomeActivity extends AppCompatActivity {
     }
 
     private void fetchUserChats(Callback callback) {
-        firebaseDatabase.getReference()
-                .child(Constants.FIREBASE_DATABASE.CHATS)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        List<String> chatIdsList = new ArrayList<>();
-                        for (DataSnapshot chatSnapshot : snapshot.getChildren()) {
-                            String chatId = chatSnapshot.getKey();
-                            if (chatId != null
-                                    && chatId.contains(localUserSingleton.getUid())) {
-                                chatIdsList.add(chatId);
-                            }
-                        }
-                        // NOW that the list is populated, invoke the callback:
-                        callback.onComplete(chatIdsList);
+        firebaseDatabase.getReference().child(Constants.FIREBASE_DATABASE.CHATS).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<String> chatIdsList = new ArrayList<>();
+                for (DataSnapshot chatSnapshot : snapshot.getChildren()) {
+                    String chatId = chatSnapshot.getKey();
+                    if (chatId != null && chatId.contains(localUserSingleton.getUid())) {
+                        chatIdsList.add(chatId);
                     }
+                }
+                // NOW that the list is populated, invoke the callback:
+                callback.onComplete(chatIdsList);
+            }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        logger.e("fetchUserChats cancelled", error.toException());
-                        // You may want to signal an error via the callback too:
-                        callback.onError(error.toException());
-                    }
-                });
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                logger.e("fetchUserChats cancelled", error.toException());
+                // You may want to signal an error via the callback too:
+                callback.onError(error.toException());
+            }
+        });
     }
-
 
     @Override
     protected void onStop() {

@@ -167,37 +167,38 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void fetchMessagesFromDatabase(String chatId) {
-        DatabaseReference chatRef = firebaseDatabase.getReference()
-                .child(Constants.FIREBASE_DATABASE.CHATS)
-                .child(chatId)
-                .child(Constants.FIREBASE_DATABASE.MESSAGES);
+        DatabaseReference chatRef = firebaseDatabase.getReference().child(Constants.FIREBASE_DATABASE.CHATS).child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
 
-        chatRef.orderByChild(Constants.FIREBASE_DATABASE.TIMESTAMP)
-                .addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
-                        String message = snapshot.child(Constants.MessageFields.MESSAGE).getValue(String.class);
-                        String messageDeliverUid = snapshot.child(Constants.MessageFields.DELIVER_UID).getValue(String.class);
-                        Long timestamp = snapshot.child(Constants.MessageFields.TIMESTAMP).getValue(Long.class);
+        chatRef.orderByChild(Constants.FIREBASE_DATABASE.TIMESTAMP).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
+                String message = snapshot.child(Constants.MessageFields.MESSAGE).getValue(String.class);
+                String messageDeliverUid = snapshot.child(Constants.MessageFields.DELIVER_UID).getValue(String.class);
+                Long timestamp = snapshot.child(Constants.MessageFields.TIMESTAMP).getValue(Long.class);
 
-                        if (message != null && messageDeliverUid != null && timestamp != null) {
-                            Message.MessageType messageType = messageDeliverUid.equals(localUserSingleton.getUid())
-                                    ? Message.MessageType.SENDER
-                                    : Message.MessageType.RECEIVER;
-                            Message messageInstance = new Message(message, timestamp, messageType, messageDeliverUid);
-                            messages.add(messageInstance);
-                            chatAdapter.notifyItemInserted(messages.size() - 1);
-                            binding.messagesRecyclerView.scrollToPosition(messages.size() - 1);
-                        }
-                    }
+                if (message != null && messageDeliverUid != null && timestamp != null) {
+                    Message.MessageType messageType = messageDeliverUid.equals(localUserSingleton.getUid()) ? Message.MessageType.SENDER : Message.MessageType.RECEIVER;
+                    Message messageInstance = new Message(message, timestamp, messageType, messageDeliverUid);
+                    messages.add(messageInstance);
+                    chatAdapter.notifyItemInserted(messages.size() - 1);
+                    binding.messagesRecyclerView.scrollToPosition(messages.size() - 1);
+                }
+            }
 
-                    @Override public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {}
-                    @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
-                    @Override public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {}
-                    @Override public void onCancelled(@NonNull DatabaseError error) {
-                        logger.e(error.getMessage(), error.toException());
-                    }
-                });
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {
+            }
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+            }
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                logger.e(error.getMessage(), error.toException());
+            }
+        });
     }
     private void insertMessageToDatabase(String chatId, String text) {
         DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference(Constants.FIREBASE_DATABASE.CHATS).child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
@@ -218,18 +219,14 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void showMessageOptionsDialog(int position, Message message) {
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("Message Options")
-                .setItems(new String[]{"Edit", "Delete"}, (dialog, which) -> {
-                    if (which == 0) {
-                        logger.d("EDITING MESSAGE");
-//                        editMessage(position, message);
-                    } else if (which == 1) {
-                        deleteMessage(position, message);
-                    }
-                })
-                .setBackground(ContextCompat.getDrawable(this, R.drawable.dialog_background))
-                .show();
+        new MaterialAlertDialogBuilder(this).setTitle("Message Options").setItems(new String[]{"Edit", "Delete"}, (dialog, which) -> {
+            if (which == 0) {
+                logger.d("EDITING MESSAGE");
+                // editMessage(position, message);
+            } else if (which == 1) {
+                deleteMessage(position, message);
+            }
+        }).setBackground(ContextCompat.getDrawable(this, R.drawable.dialog_background)).show();
     }
 
     private void deleteMessage(int position, Message message) {
@@ -240,37 +237,29 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
-        DatabaseReference chatRef = firebaseDatabase.getReference()
-                .child(Constants.FIREBASE_DATABASE.CHATS)
-                .child(chatRoomId)
-                .child(Constants.FIREBASE_DATABASE.MESSAGES);
+        DatabaseReference chatRef = firebaseDatabase.getReference().child(Constants.FIREBASE_DATABASE.CHATS).child(chatRoomId).child(Constants.FIREBASE_DATABASE.MESSAGES);
 
-        chatRef.orderByChild(Constants.MessageFields.TIMESTAMP)
-                .equalTo(message.getTimestamp())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
-                            messageSnapshot.getRef().removeValue()
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(ChatActivity.this, "Message deleted", Toast.LENGTH_SHORT).show();
-                                        messages.remove(position);
-                                        chatAdapter.notifyItemRemoved(position);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(ChatActivity.this, "Failed to delete message: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        logger.e(e.getMessage(), e.getCause());
-                                    });
-                        }
-                    }
+        chatRef.orderByChild(Constants.MessageFields.TIMESTAMP).equalTo(message.getTimestamp()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
+                    messageSnapshot.getRef().removeValue().addOnSuccessListener(aVoid -> {
+                        Toast.makeText(ChatActivity.this, "Message deleted", Toast.LENGTH_SHORT).show();
+                        messages.remove(position);
+                        chatAdapter.notifyItemRemoved(position);
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(ChatActivity.this, "Failed to delete message: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        logger.e(e.getMessage(), e.getCause());
+                    });
+                }
+            }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        logger.e(error.getMessage(), error.toException());
-                    }
-                });
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                logger.e(error.getMessage(), error.toException());
+            }
+        });
     }
-
 
     private String getChatRoomId(String uid1, String uid2) {
         if (uid1.compareTo(uid2) < 0) {

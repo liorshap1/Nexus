@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 Lior Shaposhnikov
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.example.nexus.core.services;
 
 import android.app.Service;
@@ -64,32 +79,30 @@ public class FetchUsersService extends Service {
             collection = collection.substring(0, collection.length() - 1);
         }
 
-        firestore.collection(collection)
-                .document(uid)
-                .addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        logger.e(error.getMessage(), error);
-                        return;
-                    }
+        firestore.collection(collection).document(uid).addSnapshotListener((value, error) -> {
+            if (error != null) {
+                logger.e(error.getMessage(), error);
+                return;
+            }
 
-                    fetchedUsersList.clear();
+            fetchedUsersList.clear();
 
-                    if (value != null && value.exists()) {
-                        List<String> currentFriendsList = (List<String>) value.get(Constants.UserFields.FRIENDS);
-                        if (currentFriendsList != null && !currentFriendsList.isEmpty()) {
-                            logger.i("Friends: " + currentFriendsList);
-                            for (String friendUid : currentFriendsList) {
-                                fetchSingleUser(friendUid);
-                            }
-                        } else {
-                            logger.i("Empty or null friends list");
-                            usersSubject.onNext(new ArrayList<>());
-                        }
-                    } else {
-                        logger.w("User document doesn't exist or is null");
-                        usersSubject.onNext(new ArrayList<>());
+            if (value != null && value.exists()) {
+                List<String> currentFriendsList = (List<String>) value.get(Constants.UserFields.FRIENDS);
+                if (currentFriendsList != null && !currentFriendsList.isEmpty()) {
+                    logger.i("Friends: " + currentFriendsList);
+                    for (String friendUid : currentFriendsList) {
+                        fetchSingleUser(friendUid);
                     }
-                });
+                } else {
+                    logger.i("Empty or null friends list");
+                    usersSubject.onNext(new ArrayList<>());
+                }
+            } else {
+                logger.w("User document doesn't exist or is null");
+                usersSubject.onNext(new ArrayList<>());
+            }
+        });
     }
 
     private void fetchSingleUser(String uid) {
@@ -100,34 +113,31 @@ public class FetchUsersService extends Service {
 
         String cached = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + uid);
         if (cached == null) {
-            firestore.collection(Constants.Firestore.USERS_COLLECTION)
-                    .document(uid)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot docSnap = task.getResult();
-                            if (docSnap != null && docSnap.exists()) {
-                                String first = docSnap.getString(Constants.UserFields.FIRST_NAME);
-                                String last = docSnap.getString(Constants.UserFields.SECOND_NAME);
-                                String email = docSnap.getString(Constants.UserFields.EMAIL);
-                                String pic = docSnap.getString(Constants.UserFields.PROFILE_PICTURE);
+            firestore.collection(Constants.Firestore.USERS_COLLECTION).document(uid).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot docSnap = task.getResult();
+                    if (docSnap != null && docSnap.exists()) {
+                        String first = docSnap.getString(Constants.UserFields.FIRST_NAME);
+                        String last = docSnap.getString(Constants.UserFields.SECOND_NAME);
+                        String email = docSnap.getString(Constants.UserFields.EMAIL);
+                        String pic = docSnap.getString(Constants.UserFields.PROFILE_PICTURE);
 
-                                if (first != null && last != null && email != null) {
-                                    User user = new User(uid, first, last, email, pic);
-                                    fetchedUsersList.add(user);
-                                    SharedPreferencesUtils.insertData(getApplicationContext(), "user_" + uid, gson.toJson(user));
-                                    logger.success("Fetched and cached user: " + uid);
-                                    usersSubject.onNext(new ArrayList<>(fetchedUsersList));
-                                } else {
-                                    logger.w("Incomplete data for UID: " + uid);
-                                }
-                            } else {
-                                logger.w("User document doesn't exist for UID: " + uid);
-                            }
+                        if (first != null && last != null && email != null) {
+                            User user = new User(uid, first, last, email, pic);
+                            fetchedUsersList.add(user);
+                            SharedPreferencesUtils.insertData(getApplicationContext(), "user_" + uid, gson.toJson(user));
+                            logger.success("Fetched and cached user: " + uid);
+                            usersSubject.onNext(new ArrayList<>(fetchedUsersList));
                         } else {
-                            logger.e(task.getException().getMessage(), task.getException());
+                            logger.w("Incomplete data for UID: " + uid);
                         }
-                    });
+                    } else {
+                        logger.w("User document doesn't exist for UID: " + uid);
+                    }
+                } else {
+                    logger.e(task.getException().getMessage(), task.getException());
+                }
+            });
         } else {
             User user = gson.fromJson(cached, User.class);
             fetchedUsersList.add(user);
