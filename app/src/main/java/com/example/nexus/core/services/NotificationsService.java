@@ -1,18 +1,3 @@
-/*
- * Copyright 2025 Lior Shaposhnikov
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.nexus.core.services;
 
 import static com.example.nexus.Constants.FOREGROUND_NOTIFICATION_ID;
@@ -35,6 +20,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.example.nexus.Constants;
+import com.example.nexus.R;
+import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.Message;
 import com.example.nexus.core.User;
 import com.example.nexus.utils.SharedPreferencesUtils;
@@ -50,23 +37,21 @@ import java.util.ArrayList;
 
 import javax.inject.Inject;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class NotificationsService extends Service {
     private final Gson gson = new Gson();
     private ChildEventListener messageListener;
     private DatabaseReference messagesRef;
     private final IBinder binder = new NotificationsServiceBinder();
+
     @Inject
     FirebaseDatabase firebaseDatabase;
     @Inject
     FirebaseAuth firebaseAuth;
-
-    public NotificationsService() {
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return binder;
-    }
+    @Inject
+    AppLogger logger;
 
     public class NotificationsServiceBinder extends Binder {
         public NotificationsService getService() {
@@ -75,19 +60,33 @@ public class NotificationsService extends Service {
     }
 
     @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
-        NotificationCompat.Builder foregroundBuilder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID).setContentTitle("Notification Service Running")
-                .setContentText("Listening for new messages").setPriority(NotificationCompat.PRIORITY_LOW);
+
+        NotificationCompat.Builder foregroundBuilder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID)
+                .setContentTitle("Notification Service Running")
+                .setContentText("Listening for new messages")
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setSmallIcon(R.drawable.gradient_button); // <-- חובה!
 
         startForeground(FOREGROUND_NOTIFICATION_ID, foregroundBuilder.build());
-        ArrayList<String> chatsIds = intent.getStringArrayListExtra(Constants.CHATS_INTENT);
+
+        ArrayList<String> chatsIds = intent.getStringArrayListExtra(Constants.FIREBASE_DATABASE.CHATS);
+        logger.d(String.valueOf(chatsIds));
         if (chatsIds != null && !chatsIds.isEmpty()) {
-            for (String chatRoomId : chatsIds) {
-                startServiceListener(chatRoomId);
+            for (String chatId : chatsIds) {
+                logger.w(chatId);
+                startServiceListener(chatId);
             }
         }
-        return super.onStartCommand(intent, flags, startId);
+
+        logger.w("Im fucking here");
+        return START_STICKY;
     }
 
     private void createNotificationChannel() {
@@ -96,26 +95,32 @@ public class NotificationsService extends Service {
             String channelDescription = "Nexus Notifications Center";
             int channelImportance = NotificationManager.IMPORTANCE_DEFAULT;
 
-            NotificationChannel notificationChannel = new NotificationChannel("chat_channel_id", channelTitle, channelImportance);
+            NotificationChannel notificationChannel = new NotificationChannel(
+                    Constants.CHAT_CHANNEL_ID, channelTitle, channelImportance);
             notificationChannel.setDescription(channelDescription);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            if (notificationManager != null)
+            if (notificationManager != null) {
                 notificationManager.createNotificationChannel(notificationChannel);
+            }
         }
     }
 
     private void createNotification(Message message) {
-        // Untested
         var sensitizedUserJson = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + message.getMessageDeliverUid());
         User user = gson.fromJson(sensitizedUserJson, User.class);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "chat_channel_id").setContentTitle(user.getFullName())
-                .setContentText("Sent: " + message.getText()).setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID)
+                .setContentTitle(user.getFullName())
+                .setContentText("Sent: " + message.getText())
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setSmallIcon(R.drawable.gradient_button);
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
                 Log.e("ChatNotificationService", "POST_NOTIFICATIONS permission not granted");
                 return;
             }
@@ -125,38 +130,26 @@ public class NotificationsService extends Service {
     }
 
     private void startServiceListener(String chatId) {
-        // Reference to the messages node for the given chat room.
-        messagesRef = FirebaseDatabase.getInstance().getReference(Constants.FIREBASE_DATABASE.CHATS).child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
+        messagesRef = firebaseDatabase.getReference(Constants.FIREBASE_DATABASE.CHATS)
+                .child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
 
         messageListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                // Trigger a notification if the user is not in the current chat.
                 String currentChatId = SharedPreferencesUtils.getDataByKey(getApplicationContext(), Constants.CURRENT_CHAT);
                 if (!currentChatId.equals(chatId)) {
-                    String senderUid = snapshot.child(Constants.MessageFields.SENDER_UID).getValue(String.class);
+                    String senderUid = snapshot.child(Constants.MessageFields.DELIVER_UID).getValue(String.class);
                     if (senderUid != null && !senderUid.equals(firebaseAuth.getCurrentUser().getUid())) {
                         String message = snapshot.child(Constants.MessageFields.MESSAGE).getValue(String.class);
-                        createNotification(new Message(message, null, null, senderUid));
+                        createNotification(new Message(message, 0, null, senderUid));
                     }
                 }
             }
 
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-            }
+            @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         };
 
         messagesRef.addChildEventListener(messageListener);
@@ -165,6 +158,11 @@ public class NotificationsService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        messagesRef.removeEventListener(messageListener);
+        if (messagesRef != null && messageListener != null) {
+            messagesRef.removeEventListener(messageListener);
+            logger.i("Firebase listener removed");
+        } else {
+            logger.w("No listener to remove (messagesRef or messageListener was null)");
+        }
     }
 }

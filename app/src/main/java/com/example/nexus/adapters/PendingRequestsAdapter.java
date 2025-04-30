@@ -32,7 +32,12 @@ import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.core.User;
 import com.example.nexus.utils.SharedPreferencesUtils;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -41,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PendingRequestsAdapter extends RecyclerView.Adapter<PendingRequestsViewHolder> {
     private final List<User> pendingUsersList;
@@ -71,51 +77,54 @@ public class PendingRequestsAdapter extends RecyclerView.Adapter<PendingRequests
     @Override
     public void onBindViewHolder(@NonNull PendingRequestsViewHolder holder, int position) {
         User pendingUser = pendingUsersList.get(position);
-        String email = pendingUser.getEmail();
-        String username = pendingUser.getFullName();
-        String otherUserUid = pendingUser.getUid();
+        String pendingUserEmail = pendingUser.getEmail();
+        String pendingUserFullName = pendingUser.getFullName();
+        String pendingUserUid = pendingUser.getUid();
 
-        fetchUserProfilePicture(otherUserUid, uri -> {
+        fetchUserProfilePicture(pendingUserUid, uri -> {
             logger.v("I was fetched!");
             Glide.with(context).load(uri).circleCrop().into(holder.getProfileImage());
         });
 
-        holder.bind(username, email);
+        logger.d(pendingUserUid);
+        holder.bind(pendingUserFullName, pendingUserEmail);
 
         holder.getAddButton().setOnClickListener(view -> {
             List<String> currentUserFriends = new ArrayList<>(localUser.getFriends());
-
-            if (currentUserFriends.contains(otherUserUid)) {
-                logger.i("Already friends, skipping...");
-                return;
-            }
-
-            currentUserFriends.add(otherUserUid);
-            pendingUsersList.remove(position);
-            notifyItemRemoved(position);
-            notifyDataSetChanged();
+            ArrayList<User> currentPendingUsersList = new ArrayList<>(pendingUsersList);
+            currentUserFriends.add(pendingUserUid);
+            currentPendingUsersList.remove(position);
 
             Map<String, Object> currentUserUpdates = new HashMap<>();
             currentUserUpdates.put(Constants.UserFields.FRIENDS, currentUserFriends);
-            currentUserUpdates.put(Constants.UserFields.PENDING_REQUESTS, pendingUsersList);
+            currentUserUpdates.put(Constants.UserFields.PENDING_REQUESTS, currentPendingUsersList);
 
-            DocumentReference currentUserRef = firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUser.getUid());
-            currentUserRef.update(currentUserUpdates).addOnSuccessListener(aVoid -> logger.success("Updated current user friends list"))
-                    .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+            firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUser.getUid()).update(currentUserUpdates)
+                    .addOnSuccessListener(unused -> logger.success("Updated current user friends list")).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
 
-            DocumentReference otherUserRef = firestore.collection(Constants.Firestore.USERS_COLLECTION).document(otherUserUid);
-            otherUserRef.get().addOnSuccessListener(docSnap -> {
-                if (docSnap.exists()) {
-                    List<String> otherUserFriends = (List<String>) docSnap.get(Constants.UserFields.FRIENDS);
-                    if (otherUserFriends == null) otherUserFriends = new ArrayList<>();
-                    if (!otherUserFriends.contains(localUser.getUid())) {
-                        otherUserFriends.add(localUser.getUid());
+            logger.v(pendingUserUid);
+            firestore.collection(Constants.Firestore.USERS_COLLECTION).document(pendingUserUid).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot docSnap = task.getResult();
+                    if (docSnap.exists()) {
+                        List<String> otherUserFriends = (List<String>) docSnap.get(Constants.UserFields.FRIENDS);
+                        if (otherUserFriends == null)
+                            otherUserFriends = new ArrayList<>();
+
                         Map<String, Object> otherUpdates = new HashMap<>();
-                        otherUpdates.put(Constants.UserFields.FRIENDS, otherUserFriends);
-                        otherUserRef.update(otherUpdates).addOnSuccessListener(aVoid -> logger.success("Updated other user friends list"))
-                                .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
-                    } else {
-                        logger.i("Other user already has current user as friend");
+
+                        if (!otherUserFriends.contains(localUser.getUid())) {
+                            otherUserFriends.add(localUser.getUid());
+                            otherUpdates.put(Constants.UserFields.FRIENDS, otherUserFriends);
+                        }
+
+                        logger.w(otherUpdates.toString());
+                        if (!otherUpdates.isEmpty()) {
+                            firestore.collection(Constants.Firestore.USERS_COLLECTION).document(pendingUserUid).update(otherUpdates)
+                                    .addOnSuccessListener(unused -> logger.success("Updated other used friends!"))
+                                    .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+                        }
+
                     }
                 }
             }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
@@ -126,11 +135,11 @@ public class PendingRequestsAdapter extends RecyclerView.Adapter<PendingRequests
             notifyItemRemoved(position);
 
             DocumentReference documentReference = firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUser.getUid());
-            documentReference.update(Constants.UserFields.PENDING_REQUESTS, pendingUsersList)
-                    .addOnSuccessListener(aVoid -> logger.success("Declined user successfully"))
+            documentReference.update(Constants.UserFields.PENDING_REQUESTS, pendingUsersList).addOnSuccessListener(aVoid -> logger.success("Declined user successfully"))
                     .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
         });
     }
+
     private void fetchUserProfilePicture(String uid, Callback callback) {
         String path = "user_profile" + uid;
         String localUri = SharedPreferencesUtils.getDataByKey(context, path);

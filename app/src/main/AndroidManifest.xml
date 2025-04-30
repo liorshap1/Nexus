@@ -3,7 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
         android:name=".MyNexusApplication"
@@ -16,6 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Nexus"
         tools:targetApi="31">
+        <activity
+            android:name=".home.ChangeSettingActivity"
+            android:exported="false" />
         <activity
             android:name=".chat.ChatActivity"
             android:exported="false" />
@@ -42,8 +49,8 @@
         <service
             android:name=".core.services.NotificationsService"
             android:enabled="true"
-            android:foregroundServiceType="remoteMessaging"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="remoteMessaging" />
         <service
             android:name=".core.services.FetchUsersService"
             android:enabled="true"
@@ -69,4 +76,5 @@
                 android:resource="@xml/file_paths" />
         </provider>
     </application>
+
 </manifest>

@@ -30,9 +30,13 @@ import java.util.List;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatHolder> {
     private final List<Message> messageList;
+    private OnMessageLongClickListener longClickListener;
 
     public ChatAdapter(List<Message> messageList) {
         this.messageList = messageList;
+    }
+    public void setOnMessageLongClickListener(OnMessageLongClickListener listener) {
+        this.longClickListener = listener;
     }
 
     public int getItemViewType(int position) {
@@ -51,6 +55,13 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatHolder> {
     public void onBindViewHolder(@NonNull ChatHolder holder, int position) {
         Message message = messageList.get(position);
         holder.bind(message.getText());
+
+        holder.setOnMessageLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onMessageLongClick(position, message);
+            }
+            return true;
+        });
     }
 
     @Override
@@ -68,5 +79,9 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatHolder> {
         messageList.clear();
         messageList.addAll(messages);
         notifyDataSetChanged();
+    }
+
+    public interface OnMessageLongClickListener {
+        void onMessageLongClick(int position, Message message);
     }
 }

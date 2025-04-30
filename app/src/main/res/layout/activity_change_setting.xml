@@ -6,14 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_default"
-    android:padding="20dp"
-    tools:context=".authentication.LostPasswordActivity">
+    android:padding="10dp"
+    tools:context=".home.ChangeSettingActivity">
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/backButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
+        android:layout_marginTop="8dp"
         android:backgroundTint="@color/blue_500"
         android:elevation="4dp"
         android:insetLeft="0dp"
@@ -30,17 +31,17 @@
         app:iconTint="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout3"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.017"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.588" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <LinearLayout
         android:id="@+id/linearLayout3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="70dp"
+        android:layout_marginBottom="97dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
@@ -53,10 +54,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_medium"
+            android:text="@string/don_t_worry"
             android:textColor="@color/white"
             android:textSize="40sp"
             android:textStyle="bold"
-            android:text="@string/don_t_worry"
             app:layout_constraintBottom_toTopOf="@+id/textView4"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -69,30 +70,31 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_regular"
+            android:text="@string/we_will_restore_your_account"
             android:textColor="@color/gray_400"
             android:textSize="14sp"
-            android:text="@string/we_will_restore_your_account"
             app:layout_constraintBottom_toTopOf="@+id/linearLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent" />
+
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="96dp"
         android:orientation="vertical"
         android:padding="10dp"
-        app:layout_constraintBottom_toTopOf="@+id/submitButton"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout3"
         tools:ignore="MissingConstraints">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/emailInput"
+            android:id="@+id/FIELD_INPUT"
             style="@style/Widget.Material3.TextInputLayout.FilledBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -106,8 +108,6 @@
             app:boxStrokeWidth="0dp"
             app:helperText="Enter your email"
             app:helperTextTextColor="@color/gray_400"
-            app:startIconDrawable="@drawable/user"
-            app:startIconTint="@color/white"
             tools:layout_editor_absoluteX="20dp"
             tools:layout_editor_absoluteY="20dp">
 
@@ -115,9 +115,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
-                android:inputType="textEmailAddress"
-                android:textColor="@color/white"
                 android:fontFamily="@font/inter_regular"
+                android:inputType="text"
+                android:textColor="@color/white"
                 android:textColorHint="@color/white" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -127,10 +127,6 @@
         android:id="@+id/submitButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="21dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="559dp"
         android:background="@drawable/gradient_button"
         android:fontFamily="@font/inter_regular"
         android:paddingVertical="13dp"
@@ -142,7 +138,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+        app:layout_constraintVertical_bias="0.06" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -94,11 +94,17 @@ public class SuggestedAdapter extends RecyclerView.Adapter<SuggestedViewHolder> 
     public void setUsers(List<User> newUsers) {
         usersList.clear();
         if (newUsers != null) {
+            logger.v("Maybe here is the problem?");
+            logger.v(String.valueOf(newUsers));
             usersList.addAll(newUsers);
         }
 
         notifyDataSetChanged();
     }
+
+    public List<User> getUsers() {
+        return usersList;
+    };
 
     @Override
     public int getItemCount() {

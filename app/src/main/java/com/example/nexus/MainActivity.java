@@ -114,10 +114,12 @@ public class MainActivity extends AppCompatActivity {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                 if (firebaseUser != null) {
                     retrieveLocalUserOnce(firebaseUser.getUid(), doc -> {
+                        logger.v(doc.toString());
                         localUserSingleton.initializeLocalUserSingleton(firebaseUser.getUid(), doc.getString(Constants.UserFields.FIRST_NAME),
                                 doc.getString(Constants.UserFields.SECOND_NAME), doc.getString(Constants.UserFields.EMAIL), doc.getString(Constants.UserFields.PROFILE_PICTURE),
                                 (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
 
+                        logger.v(localUserSingleton.toString());
                         startService(fetchUsersServiceIntent);
                         startActivity(new Intent(MainActivity.this, MainHomeActivity.class));
                     });

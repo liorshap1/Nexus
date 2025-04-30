@@ -24,7 +24,7 @@ import javax.inject.Singleton;
 
 @Module
 @InstallIn(SingletonComponent.class)
-public class RealtimeDatabaseModule {
+public class FirebaseDatabaseModule {
     @Provides
     @Singleton
     public static FirebaseDatabase provideRealtimeDatabase() {

@@ -51,14 +51,16 @@
 
         <ImageView
             android:id="@+id/profilePicture"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="10dp"
             android:layout_gravity="center" />
 
         <TextView
             android:id="@+id/user_name"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:layout_marginLeft="10dp"
             android:fontFamily="@font/inter_semibold"
             android:gravity="center"
             android:text="@string/place_holder"
@@ -89,7 +91,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/emailInput"
+            android:id="@+id/textInput"
             style="@style/Widget.Material3.TextInputLayout.FilledBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

@@ -55,8 +55,6 @@ public class LoginActivity extends AppCompatActivity {
     AppLogger logger;
     private ActivityLoginBinding binding;
     private Disposable loginDisposable;
-    private FetchUsersService fetchUsersService;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +75,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         Intent fetchUsersServiceIntent = new Intent(getApplicationContext(), FetchUsersService.class);
+
         binding.loginButton.setOnClickListener(view -> {
             String email = GetTextUtils.getTextFromInput(binding.emailInput);
             String password = GetTextUtils.getTextFromInput(binding.passwordInput);
@@ -88,8 +87,6 @@ public class LoginActivity extends AppCompatActivity {
                         docSnap.getString(Constants.UserFields.EMAIL), docSnap.getString(Constants.UserFields.PROFILE_PICTURE), localUserSingleton.getUid(),
                         (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS));
 
-                ArrayList<String> friends = (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS);
-                fetchUsersServiceIntent.putExtra(Constants.USERS_KEY, friends);
                 startService(fetchUsersServiceIntent);
                 logger.success("Started Fetching Service, LoginActivity");
 

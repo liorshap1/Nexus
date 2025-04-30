@@ -35,4 +35,7 @@ public class ChatHolder extends RecyclerView.ViewHolder {
     public void bind(String text) {
         message.setText(text);
     }
+    public void setOnMessageLongClickListener(View.OnLongClickListener listener) {
+        itemView.setOnLongClickListener(listener);
+    }
 }

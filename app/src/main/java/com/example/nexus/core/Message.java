@@ -17,19 +17,15 @@ package com.example.nexus.core;
 
 public class Message {
     private String text;
-    private String timestamp;
-    private String messageDeliverUid;
+    private long timestamp;
+    private final String messageDeliverUid;
     private MessageType messageType;
 
-    public Message(String text, String timestamp, MessageType messageType, String messageDeliverUid) {
+    public Message(String text, long timestamp, MessageType messageType, String messageDeliverUid) {
         this.text = text;
         this.timestamp = timestamp;
         this.messageType = messageType;
         this.messageDeliverUid = messageDeliverUid;
-    }
-
-    public String getMessageDeliverUid() {
-        return messageDeliverUid;
     }
 
     public String getText() {
@@ -40,12 +36,16 @@ public class Message {
         this.text = text;
     }
 
-    public String getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getMessageDeliverUid() {
+        return messageDeliverUid;
     }
 
     public MessageType getMessageType() {

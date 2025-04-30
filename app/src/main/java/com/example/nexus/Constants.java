@@ -18,10 +18,8 @@ package com.example.nexus;
 public class Constants {
     public static final int REQUEST_CODE = 1;
     public static final int NOTIFICATION_ID = 2;
-    public static final String USERS_KEY = "users";
-    public static final String CHAT_CHANNEL_ID = "chat_channels";
-    public static final String CHATS_INTENT = "chats";
     public static final int FOREGROUND_NOTIFICATION_ID = 1;
+    public static final String CHAT_CHANNEL_ID = "chat_channels";
     public static final String CURRENT_CHAT = "current_chat_id";
 
     public static class UserFields {
@@ -46,14 +44,18 @@ public class Constants {
     }
 
     public static class MessageFields {
-        public static final String SENDER_UID = "sender_uid";
+        public static final String DELIVER_UID = "deliver_uid";
         public static final String MESSAGE = "message";
-        public static final String SENDER_NAME = "sender_name";
+        public static final String DELIVER_NAME = "deliver_name";
         public static final String TIMESTAMP = "timestamp";
     }
 
     public static class ChatsActivity {
         public static final String USER = "user";
+    }
+
+    public static class ChangeSettingActivity {
+        public static final String CHANGE_SETTING = "change_setting";
 
     }
 }

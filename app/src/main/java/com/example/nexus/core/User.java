@@ -1,38 +1,49 @@
-/*
- * Copyright 2025 Lior Shaposhnikov
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.nexus.core;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
-public class User extends BaseUser {
-    /**
-     * Constructs a new BaseUser.
-     *
-     * @param uid
-     *            The user's unique ID.
-     * @param firstName
-     *            The user's first name.
-     * @param secondName
-     *            The user's second name.
-     * @param email
-     *            The user's email address.
-     * @param profilePicture
-     *            The URL or path of the user's profile picture.
-     */
+public class User extends BaseUser implements Parcelable {
+
     public User(@NonNull String uid, @NonNull String firstName, @NonNull String secondName, @NonNull String email, String profilePicture) {
         super(uid, firstName, secondName, email, profilePicture);
+    }
+
+    protected User(Parcel in) {
+        super(
+                in.readString(), // uid
+                in.readString(), // firstName
+                in.readString(), // secondName
+                in.readString(), // email
+                in.readString()  // profilePicture
+        );
+    }
+
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(getUid());
+        dest.writeString(getFirstName());
+        dest.writeString(getSecondName());
+        dest.writeString(getEmail());
+        dest.writeString(getProfilePicture());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 }

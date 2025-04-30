@@ -15,7 +15,9 @@
  */
 package com.example.nexus.home;
 
+import static android.app.PendingIntent.getActivity;
 import static android.view.View.INVISIBLE;
+import static androidx.core.content.ContentProviderCompat.requireContext;
 import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED;
 import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HALF_EXPANDED;
 import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN;
@@ -24,27 +26,45 @@ import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.gesture.Gesture;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.nexus.Constants;
 import com.example.nexus.R;
 import com.example.nexus.adapters.SuggestedAdapter;
 import com.example.nexus.applogger.AppLogger;
+import com.example.nexus.chat.ChatActivity;
+import com.example.nexus.core.LocalUserSingleton;
+import com.example.nexus.core.User;
 import com.example.nexus.core.services.FetchUsersService;
+import com.example.nexus.core.services.NotificationsService;
 import com.example.nexus.databinding.ActivityMainHomeBinding;
 import com.example.nexus.home.fragments.ChatsFragment;
 import com.example.nexus.home.fragments.MenuFragment;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -53,8 +73,23 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 
 @AndroidEntryPoint
 public class MainHomeActivity extends AppCompatActivity {
+    private ActivityMainHomeBinding binding;
+    private FetchUsersService fetchUsersService;
+    private SuggestedAdapter suggestedAdapter;
+    private FragmentManager fragmentManager;
+    private ChatsFragment chatsFragment;
+    private boolean isBound;
+    private MenuFragment menuFragment;
+    @Inject
+    FirebaseStorage firebaseStorage;
+    @Inject
+    FirebaseDatabase firebaseDatabase;
+    @Inject
+    LocalUserSingleton localUserSingleton;
     @Inject
     AppLogger logger;
+
+
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @SuppressLint({"CheckResult", "NotifyDataSetChanged"})
         @Override
@@ -65,6 +100,7 @@ public class MainHomeActivity extends AppCompatActivity {
 
             fetchUsersService.observeCurrentUsers().observeOn(AndroidSchedulers.mainThread()).subscribe(list -> {
                 if (list != null) {
+                    logger.v("I'm here");
                     suggestedAdapter.setUsers(list);
                 }
             }, error -> {
@@ -81,15 +117,6 @@ public class MainHomeActivity extends AppCompatActivity {
             logger.w("Service disconnected");
         }
     };
-    private ActivityMainHomeBinding binding;
-    private FetchUsersService fetchUsersService;
-    private SuggestedAdapter suggestedAdapter;
-    @Inject
-    FirebaseStorage firebaseStorage;
-    private FragmentManager fragmentManager;
-    private ChatsFragment chatsFragment;
-    private boolean isBound;
-    private MenuFragment menuFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +129,26 @@ public class MainHomeActivity extends AppCompatActivity {
         fragmentManager = getSupportFragmentManager();
         chatsFragment = new ChatsFragment();
         menuFragment = new MenuFragment();
+
+        fetchUserChats(new Callback() {
+            @Override
+            public void onComplete(List<String> chatIds) {
+                Intent serviceIntent = new Intent(MainHomeActivity.this, NotificationsService.class);
+                serviceIntent.putStringArrayListExtra(Constants.FIREBASE_DATABASE.CHATS, new ArrayList<>(chatIds));
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(serviceIntent);
+                } else {
+                    startService(serviceIntent);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                logger.e(e.getMessage(), e);
+            }
+        });
+
 
         isBound = false;
     }
@@ -117,8 +164,27 @@ public class MainHomeActivity extends AppCompatActivity {
         bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
 
         binding.suggestedRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            GestureDetector gestureDetector = new GestureDetector(MainHomeActivity.this, new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onSingleTapUp(@NonNull MotionEvent e) {
+                    return true;
+                }
+            }
+
+            );
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                View child = rv.findChildViewUnder(e.getX(), e.getY());
+                if (child != null && gestureDetector.onTouchEvent(e)) {
+                    int position = rv.getChildAdapterPosition(child);
+                    User user = suggestedAdapter.getUsers().get(position);
+
+                    Intent openChatIntent = new Intent(MainHomeActivity.this, ChatActivity.class);
+                    openChatIntent.putExtra(Constants.ChatsActivity.USER, user);
+                    startActivity(openChatIntent);
+
+                    return true;
+                }
                 return false;
             }
 
@@ -133,18 +199,6 @@ public class MainHomeActivity extends AppCompatActivity {
         });
 
         fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), chatsFragment).addToBackStack(null).commit();
-        binding.bottomNavigation.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.homeItem) {
-                fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), chatsFragment).addToBackStack(null).commit();
-                return true;
-            }
-            if (itemId == R.id.menuItem) {
-                fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), menuFragment).addToBackStack(null).commit();
-                return true;
-            }
-            return true;
-        });
 
         BottomSheetBehavior<FrameLayout> bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
         bottomSheetBehavior.setDraggable(true);
@@ -153,6 +207,20 @@ public class MainHomeActivity extends AppCompatActivity {
         binding.openFriends.setOnClickListener(view -> {
             bottomSheetBehavior.setState(STATE_HALF_EXPANDED);
             binding.openFriends.setVisibility(INVISIBLE);
+        });
+
+        binding.bottomNavigation.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.homeItem) {
+                fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), chatsFragment).addToBackStack(null).commit();
+                return true;
+            }
+            if (itemId == R.id.menuItem) {
+                fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), menuFragment).addToBackStack(null).commit();
+                bottomSheetBehavior.setState(STATE_HIDDEN);
+                return true;
+            }
+            return true;
         });
 
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -174,6 +242,34 @@ public class MainHomeActivity extends AppCompatActivity {
         });
     }
 
+    private void fetchUserChats(Callback callback) {
+        firebaseDatabase.getReference()
+                .child(Constants.FIREBASE_DATABASE.CHATS)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        List<String> chatIdsList = new ArrayList<>();
+                        for (DataSnapshot chatSnapshot : snapshot.getChildren()) {
+                            String chatId = chatSnapshot.getKey();
+                            if (chatId != null
+                                    && chatId.contains(localUserSingleton.getUid())) {
+                                chatIdsList.add(chatId);
+                            }
+                        }
+                        // NOW that the list is populated, invoke the callback:
+                        callback.onComplete(chatIdsList);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        logger.e("fetchUserChats cancelled", error.toException());
+                        // You may want to signal an error via the callback too:
+                        callback.onError(error.toException());
+                    }
+                });
+    }
+
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -181,6 +277,11 @@ public class MainHomeActivity extends AppCompatActivity {
             unbindService(serviceConnection);
             isBound = false;
         }
+    }
+
+    interface Callback {
+        void onComplete(List<String> list);
+        void onError(Exception e);
     }
 
     @Override

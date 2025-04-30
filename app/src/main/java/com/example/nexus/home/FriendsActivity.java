@@ -32,6 +32,7 @@ import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.core.User;
 import com.example.nexus.core.services.FetchUsersService;
 import com.example.nexus.databinding.ActivityFriendsBinding;
+import com.example.nexus.utils.GetTextUtils;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -129,6 +130,10 @@ public class FriendsActivity extends AppCompatActivity {
         });
 
         binding.backButton.setOnClickListener(view -> finish());
+        binding.sendButton.setOnClickListener(view -> {
+            String email = GetTextUtils.getTextFromInput(binding.emailInput);
+            sendFriendRequest(email);
+        });
     }
 
     private void fetchUser(String uid, Runnable onComplete) {
@@ -156,6 +161,30 @@ public class FriendsActivity extends AppCompatActivity {
             logger.e(e.getMessage(), e.getCause());
             onComplete.run();
         });
+    }
+
+    private void sendFriendRequest(String targetEmail) {
+        firestore.collection(Constants.Firestore.USERS_COLLECTION).whereEqualTo(Constants.UserFields.EMAIL, targetEmail).get().addOnSuccessListener(querySnapshot -> {
+            if (querySnapshot.isEmpty()) {
+                logger.w("No user found with email: " + targetEmail);
+                return;
+            }
+
+            DocumentSnapshot targetUserDoc = querySnapshot.getDocuments().get(0);
+            String targetUserUid = targetUserDoc.getId();
+            List<String> pendingRequests = (List<String>) targetUserDoc.get(Constants.UserFields.PENDING_REQUESTS);
+
+            if (pendingRequests == null)
+                pendingRequests = new ArrayList<>();
+            if (pendingRequests.contains(localUserSingleton.getUid())) {
+                logger.i("Already sent friend request");
+                return;
+            }
+
+            pendingRequests.add(localUserSingleton.getUid());
+            firestore.collection(Constants.Firestore.USERS_COLLECTION).document(targetUserUid).update(Constants.UserFields.PENDING_REQUESTS, pendingRequests)
+                    .addOnSuccessListener(aVoid -> logger.success("Friend request sent to: " + targetEmail)).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+        }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
     }
 
     @Override
