@@ -15,6 +15,7 @@
  */
 package com.example.nexus.adapters;
 
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,39 +24,34 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nexus.R;
-import com.google.android.material.button.MaterialButton;
+import com.example.nexus.core.User;
 
-public class PendingRequestsViewHolder extends RecyclerView.ViewHolder {
+public class OpenChatsHolder extends RecyclerView.ViewHolder {
     private final TextView username;
     private final TextView email;
-    private final MaterialButton addButton;
-    private final MaterialButton removeButton;
-    private final ImageView profileImage;
-
-    public PendingRequestsViewHolder(@NonNull View itemView) {
+    private final ImageView profilePicture;
+    public OpenChatsHolder(@NonNull View itemView) {
         super(itemView);
 
         username = itemView.findViewById(R.id.user_name);
         email = itemView.findViewById(R.id.user_email);
-        addButton = itemView.findViewById(R.id.addButton);
-        removeButton = itemView.findViewById(R.id.removeButton);
-        profileImage = itemView.findViewById(R.id.profileImage);
+        profilePicture = itemView.findViewById(R.id.profileImage);
+
+        if (username == null || email == null) {
+            Log.e("VH_BIND", "ViewHolder failed to find one of the text views!");
+        }
     }
 
-    public void bind(String username, String email) {
-        this.username.setText(username);
-        this.email.setText(email);
+    public void bind(User user, String lastMessage) {
+        this.username.setText(user.getFullName());
+        this.email.setText(lastMessage);
     }
 
-    public MaterialButton getAddButton() {
-        return addButton;
+    public TextView getEmail() {
+        return email;
     }
 
-    public MaterialButton getRemoveButton() {
-        return removeButton;
-    }
-
-    public ImageView getProfileImage() {
-        return profileImage;
+    public ImageView getProfilePicture() {
+        return profilePicture;
     }
 }

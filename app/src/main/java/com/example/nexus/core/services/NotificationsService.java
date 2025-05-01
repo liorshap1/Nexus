@@ -57,22 +57,15 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class NotificationsService extends Service {
     private final Gson gson = new Gson();
-    private ChildEventListener messageListener;
-    private DatabaseReference messagesRef;
     private final IBinder binder = new NotificationsServiceBinder();
-
     @Inject
     FirebaseDatabase firebaseDatabase;
     @Inject
     FirebaseAuth firebaseAuth;
     @Inject
     AppLogger logger;
-
-    public class NotificationsServiceBinder extends Binder {
-        public NotificationsService getService() {
-            return NotificationsService.this;
-        }
-    }
+    private ChildEventListener messageListener;
+    private DatabaseReference messagesRef;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -83,8 +76,9 @@ public class NotificationsService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
 
-        NotificationCompat.Builder foregroundBuilder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID).setContentTitle("Notification Service Running")
-                .setContentText("Listening for new messages").setPriority(NotificationCompat.PRIORITY_LOW).setSmallIcon(R.drawable.gradient_button); // <-- חובה!
+        NotificationCompat.Builder foregroundBuilder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID)
+                .setContentTitle("Notification Service Running").setContentText("Listening for new messages").setPriority(NotificationCompat.PRIORITY_LOW)
+                .setSmallIcon(R.drawable.gradient_button); // <-- חובה!
 
         startForeground(FOREGROUND_NOTIFICATION_ID, foregroundBuilder.build());
 
@@ -122,11 +116,13 @@ public class NotificationsService extends Service {
         User user = gson.fromJson(sensitizedUserJson, User.class);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID).setContentTitle(user.getFullName())
-                .setContentText("Sent: " + message.getText()).setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).setSmallIcon(R.drawable.gradient_button);
+                .setContentText("Sent: " + message.getText()).setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true)
+                .setSmallIcon(R.drawable.gradient_button);
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(getApplicationContext(),
+                    android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 Log.e("ChatNotificationService", "POST_NOTIFICATIONS permission not granted");
                 return;
             }
@@ -154,12 +150,15 @@ public class NotificationsService extends Service {
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             }
+
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
             }
+
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
             }
@@ -176,6 +175,12 @@ public class NotificationsService extends Service {
             logger.i("Firebase listener removed");
         } else {
             logger.w("No listener to remove (messagesRef or messageListener was null)");
+        }
+    }
+
+    public class NotificationsServiceBinder extends Binder {
+        public NotificationsService getService() {
+            return NotificationsService.this;
         }
     }
 }

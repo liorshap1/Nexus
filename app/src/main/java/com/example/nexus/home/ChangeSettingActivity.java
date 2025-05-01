@@ -18,22 +18,13 @@ package com.example.nexus.home;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.nexus.Constants;
-import com.example.nexus.R;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.databinding.ActivityChatBinding;
 import com.example.nexus.utils.GetTextUtils;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -45,8 +36,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ChangeSettingActivity extends AppCompatActivity {
-    private Map<String, String> dictionary = new HashMap<>();
-    private String FIELD_TO_CHANGE;
     ActivityChatBinding binding;
     @Inject
     FirebaseFirestore firestore;
@@ -54,6 +43,8 @@ public class ChangeSettingActivity extends AppCompatActivity {
     LocalUserSingleton localUserSingleton;
     @Inject
     AppLogger logger;
+    private Map<String, String> dictionary = new HashMap<>();
+    private String FIELD_TO_CHANGE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,8 +85,8 @@ public class ChangeSettingActivity extends AppCompatActivity {
         Map<String, Object> data = new HashMap<>();
         data.put(FIELD_TO_CHANGE, VALUE);
 
-        firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUserSingleton.getUid()).update(data).addOnCompleteListener(task -> callback.onComplete())
-                .addOnFailureListener(callback::onError);
+        firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUserSingleton.getUid()).update(data)
+                .addOnCompleteListener(task -> callback.onComplete()).addOnFailureListener(callback::onError);
     }
 
     private void initializeDictionary() {
@@ -106,6 +97,7 @@ public class ChangeSettingActivity extends AppCompatActivity {
 
     interface Callback {
         void onComplete();
+
         void onError(Exception e);
     }
 }

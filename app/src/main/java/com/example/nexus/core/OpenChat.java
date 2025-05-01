@@ -13,21 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.nexus;
+package com.example.nexus.core;
 
-import static org.junit.Assert.assertEquals;
+public class OpenChat {
+    private User deliverUser;
+    private String lastMessage;
 
-import org.junit.Test;
+    public OpenChat(User deliverUser, String lastMessage) {
+        this.deliverUser = deliverUser;
+        this.lastMessage = lastMessage;
+    }
 
-/**
- * Example local unit test, which will execute on the development machine
- * (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
- */
-public class ExampleUnitTest {
-    @Test
-    public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
+    public User getDeliverUser() {
+        return deliverUser;
+    }
+
+    public void setDeliverUser(User deliverUser) {
+        this.deliverUser = deliverUser;
+    }
+
+    public String getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
     }
 }

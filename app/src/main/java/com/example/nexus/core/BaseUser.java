@@ -80,17 +80,18 @@ public abstract class BaseUser {
         return profilePicture;
     }
 
-    public String getFullName() {
-        return this.firstName + " " + this.secondName;
-    }
-
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
     }
 
+    public String getFullName() {
+        return this.firstName + " " + this.secondName;
+    }
+
+    @NonNull
     @Override
     public String toString() {
-        return "BaseUser{" + "uid='" + uid + '\'' + ", firstName='" + firstName + '\'' + ", secondName='" + secondName + '\'' + ", email='" + email + '\'' + ", profilePicture='"
-                + profilePicture + '\'' + '}';
+        return "BaseUser{" + "uid='" + uid + '\'' + ", firstName='" + firstName + '\'' + ", secondName='" + secondName + '\'' + ", email='" + email + '\''
+                + ", profilePicture='" + profilePicture + '\'' + '}';
     }
 }

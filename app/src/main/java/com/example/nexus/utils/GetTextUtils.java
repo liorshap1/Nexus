@@ -16,6 +16,7 @@
 package com.example.nexus.utils;
 
 import com.google.android.material.textfield.TextInputLayout;
+
 import java.util.Objects;
 
 public class GetTextUtils {

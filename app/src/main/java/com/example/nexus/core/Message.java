@@ -16,9 +16,9 @@
 package com.example.nexus.core;
 
 public class Message {
+    private final String messageDeliverUid;
     private String text;
     private long timestamp;
-    private final String messageDeliverUid;
     private MessageType messageType;
 
     public Message(String text, long timestamp, MessageType messageType, String messageDeliverUid) {

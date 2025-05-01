@@ -26,10 +26,10 @@ import android.util.Log;
 import java.util.Objects;
 
 public class SpeechRecognizerUtils {
-    private SpeechRecognizer speechRecognizer;
-    private RecognitionListener recognitionListener;
     private final Context context;
     private final Callback callback;
+    private SpeechRecognizer speechRecognizer;
+    private RecognitionListener recognitionListener;
 
     public SpeechRecognizerUtils(Context context, Callback callback) {
         this.callback = callback;

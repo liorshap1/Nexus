@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.nexus.R;
 import com.example.nexus.applogger.AppLogger;
+import com.example.nexus.core.OpenChat;
 import com.example.nexus.core.User;
 import com.example.nexus.utils.SharedPreferencesUtils;
 import com.google.firebase.storage.FirebaseStorage;
@@ -36,43 +37,36 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SuggestedAdapter extends RecyclerView.Adapter<SuggestedViewHolder> {
+public class OpenChatsAdapter extends RecyclerView.Adapter<OpenChatsHolder> {
     private final AppLogger logger;
-    private final List<User> usersList;
-    private final Context context;
     private final FirebaseStorage firebaseStorage;
+    private final List<OpenChat> openChats;
+    private final Context context;
 
-    public SuggestedAdapter(Context context, FirebaseStorage firebaseStorage, AppLogger logger) {
-        usersList = new ArrayList<>();
-        this.context = context;
-        this.firebaseStorage = firebaseStorage;
+    public OpenChatsAdapter(AppLogger logger, FirebaseStorage firebaseStorage, Context context) {
+        this.openChats = new ArrayList<>();
         this.logger = logger;
+        this.firebaseStorage = firebaseStorage;
+        this.context = context;
     }
 
     @NonNull
     @Override
-    public SuggestedViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public OpenChatsHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.user_card, parent, false);
-        return new SuggestedViewHolder(view);
+        return new OpenChatsHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull SuggestedViewHolder holder, int position) {
-        if (holder.getUsername() == null) {
-            throw new IllegalStateException("nameTextView is null! Did you inflate the right layout and use the correct ID?");
-        }
-        if (holder.getEmail() == null) {
-            throw new IllegalStateException("emailTextView is null! Check R.id.tvUserEmail in user_card.xml");
-        }
+    public void onBindViewHolder(@NonNull OpenChatsHolder holder, int position) {
+        User user = openChats.get(position).getDeliverUser();
+        String lastMessage = openChats.get(position).getLastMessage();
+        fetchUserProfilePicture(user.getUid(), uri -> Glide.with(context).load(uri).circleCrop().into(holder.getProfilePicture()));
 
-        String email = usersList.get(position).getEmail();
-        String username = usersList.get(position).getFullName();
-        fetchUserProfilePicture(usersList.get(position).getUid(), uri -> Glide.with(context).load(uri).circleCrop().into(holder.getProfilePicture()));
-
-        holder.bind(username, email);
+        holder.bind(user, lastMessage);
     }
 
-    private void fetchUserProfilePicture(String uid, Callback callback) {
+    private void fetchUserProfilePicture(String uid, SuggestedAdapter.Callback callback) {
         String path = "user_profile" + uid;
         String localUri = SharedPreferencesUtils.getDataByKey(context, path);
 
@@ -90,26 +84,17 @@ public class SuggestedAdapter extends RecyclerView.Adapter<SuggestedViewHolder> 
         }
     }
 
-    public List<User> getUsers() {
-        return usersList;
-    }
-
     @SuppressLint("NotifyDataSetChanged")
-    public void setUsers(List<User> newUsers) {
-        usersList.clear();
-        if (newUsers != null) {
-            usersList.addAll(newUsers);
-        }
-
+    public void addSingleChat(OpenChat openChat) {
+        this.openChats.add(openChat);
         notifyDataSetChanged();
+    }
+    public void clear() {
+        this.openChats.clear();
     }
 
     @Override
     public int getItemCount() {
-        return usersList.size();
-    }
-
-    interface Callback {
-        void onComplete(Uri uri);
+        return openChats.size();
     }
 }

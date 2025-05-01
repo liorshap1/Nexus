@@ -57,7 +57,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class RegisterActivity extends AppCompatActivity {
-    private ActivityRegisterBinding binding;
     @Inject
     FirebaseFirestore firebaseFirestore;
     @Inject
@@ -68,6 +67,7 @@ public class RegisterActivity extends AppCompatActivity {
     LocalUserSingleton localUserSingleton;
     @Inject
     FirebaseStorage firebaseStorage;
+    private ActivityRegisterBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,9 +107,7 @@ public class RegisterActivity extends AppCompatActivity {
                         logger.e(e.getMessage(), e.getCause());
                     }
                 });
-            }).addOnFailureListener(e -> {
-                logger.e(e.getMessage(), e.getCause());
-            });
+            }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
         });
 
         binding.loginButton.setOnClickListener((view) -> {

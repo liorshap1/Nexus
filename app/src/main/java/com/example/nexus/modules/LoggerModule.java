@@ -17,6 +17,7 @@ package com.example.nexus.modules;
 
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.applogger.AppLoggerImpl;
+
 import dagger.Binds;
 import dagger.Module;
 import dagger.hilt.InstallIn;

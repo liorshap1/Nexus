@@ -15,9 +15,7 @@
  */
 package com.example.nexus.home;
 
-import static android.app.PendingIntent.getActivity;
 import static android.view.View.INVISIBLE;
-import static androidx.core.content.ContentProviderCompat.requireContext;
 import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED;
 import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HALF_EXPANDED;
 import static com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN;
@@ -26,18 +24,15 @@ import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.gesture.Gesture;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -62,7 +57,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,13 +67,6 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 
 @AndroidEntryPoint
 public class MainHomeActivity extends AppCompatActivity {
-    private ActivityMainHomeBinding binding;
-    private FetchUsersService fetchUsersService;
-    private SuggestedAdapter suggestedAdapter;
-    private FragmentManager fragmentManager;
-    private ChatsFragment chatsFragment;
-    private boolean isBound;
-    private MenuFragment menuFragment;
     @Inject
     FirebaseStorage firebaseStorage;
     @Inject
@@ -88,7 +75,12 @@ public class MainHomeActivity extends AppCompatActivity {
     LocalUserSingleton localUserSingleton;
     @Inject
     AppLogger logger;
-
+    private ActivityMainHomeBinding binding;
+    private FetchUsersService fetchUsersService;
+    private SuggestedAdapter suggestedAdapter;
+    private FragmentManager fragmentManager;
+    private ChatsFragment chatsFragment;
+    private boolean isBound;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @SuppressLint({"CheckResult", "NotifyDataSetChanged"})
         @Override
@@ -99,7 +91,6 @@ public class MainHomeActivity extends AppCompatActivity {
 
             fetchUsersService.observeCurrentUsers().observeOn(AndroidSchedulers.mainThread()).subscribe(list -> {
                 if (list != null) {
-                    logger.v("I'm here");
                     suggestedAdapter.setUsers(list);
                 }
             }, error -> {
@@ -116,6 +107,7 @@ public class MainHomeActivity extends AppCompatActivity {
             logger.w("Service disconnected");
         }
     };
+    private MenuFragment menuFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,6 +162,7 @@ public class MainHomeActivity extends AppCompatActivity {
             }
 
             );
+
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
                 View child = rv.findChildViewUnder(e.getX(), e.getY());
@@ -197,7 +190,6 @@ public class MainHomeActivity extends AppCompatActivity {
         });
 
         fragmentManager.beginTransaction().replace(binding.fragmentContainer.getId(), chatsFragment).addToBackStack(null).commit();
-
         BottomSheetBehavior<FrameLayout> bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet);
         bottomSheetBehavior.setDraggable(true);
         bottomSheetBehavior.setState(STATE_COLLAPSED);
@@ -273,13 +265,14 @@ public class MainHomeActivity extends AppCompatActivity {
         }
     }
 
-    interface Callback {
-        void onComplete(List<String> list);
-        void onError(Exception e);
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    interface Callback {
+        void onComplete(List<String> list);
+
+        void onError(Exception e);
     }
 }

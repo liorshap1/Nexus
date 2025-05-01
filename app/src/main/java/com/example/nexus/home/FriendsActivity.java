@@ -164,27 +164,30 @@ public class FriendsActivity extends AppCompatActivity {
     }
 
     private void sendFriendRequest(String targetEmail) {
-        firestore.collection(Constants.Firestore.USERS_COLLECTION).whereEqualTo(Constants.UserFields.EMAIL, targetEmail).get().addOnSuccessListener(querySnapshot -> {
-            if (querySnapshot.isEmpty()) {
-                logger.w("No user found with email: " + targetEmail);
-                return;
-            }
+        firestore.collection(Constants.Firestore.USERS_COLLECTION).whereEqualTo(Constants.UserFields.EMAIL, targetEmail).get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (querySnapshot.isEmpty()) {
+                        logger.w("No user found with email: " + targetEmail);
+                        return;
+                    }
 
-            DocumentSnapshot targetUserDoc = querySnapshot.getDocuments().get(0);
-            String targetUserUid = targetUserDoc.getId();
-            List<String> pendingRequests = (List<String>) targetUserDoc.get(Constants.UserFields.PENDING_REQUESTS);
+                    DocumentSnapshot targetUserDoc = querySnapshot.getDocuments().get(0);
+                    String targetUserUid = targetUserDoc.getId();
+                    List<String> pendingRequests = (List<String>) targetUserDoc.get(Constants.UserFields.PENDING_REQUESTS);
 
-            if (pendingRequests == null)
-                pendingRequests = new ArrayList<>();
-            if (pendingRequests.contains(localUserSingleton.getUid())) {
-                logger.i("Already sent friend request");
-                return;
-            }
+                    if (pendingRequests == null)
+                        pendingRequests = new ArrayList<>();
+                    if (pendingRequests.contains(localUserSingleton.getUid())) {
+                        logger.i("Already sent friend request");
+                        return;
+                    }
 
-            pendingRequests.add(localUserSingleton.getUid());
-            firestore.collection(Constants.Firestore.USERS_COLLECTION).document(targetUserUid).update(Constants.UserFields.PENDING_REQUESTS, pendingRequests)
-                    .addOnSuccessListener(aVoid -> logger.success("Friend request sent to: " + targetEmail)).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
-        }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+                    pendingRequests.add(localUserSingleton.getUid());
+                    firestore.collection(Constants.Firestore.USERS_COLLECTION).document(targetUserUid)
+                            .update(Constants.UserFields.PENDING_REQUESTS, pendingRequests)
+                            .addOnSuccessListener(aVoid -> logger.success("Friend request sent to: " + targetEmail))
+                            .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+                }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
     }
 
     @Override

@@ -16,11 +16,9 @@
 package com.example.nexus.chat;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -65,9 +63,6 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public class ChatActivity extends AppCompatActivity {
     private final List<Message> messages = new ArrayList<>();
-    private ChatAdapter chatAdapter;
-    private ActivityChatBinding binding;
-    private SpeechRecognizerUtils speechRecognizerUtils;
     @Inject
     FirebaseStorage firebaseStorage;
     @Inject
@@ -76,6 +71,9 @@ public class ChatActivity extends AppCompatActivity {
     AppLogger logger;
     @Inject
     LocalUserSingleton localUserSingleton;
+    private ChatAdapter chatAdapter;
+    private ActivityChatBinding binding;
+    private SpeechRecognizerUtils speechRecognizerUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,17 +87,17 @@ public class ChatActivity extends AppCompatActivity {
         super.onStart();
 
         User user = getIntent().getParcelableExtra(Constants.ChatsActivity.USER);
+        assert user != null;
         String currentChatId = getChatRoomId(localUserSingleton.getUid(), user.getUid());
         SharedPreferencesUtils.insertData(this, Constants.CURRENT_CHAT, currentChatId);
 
         chatAdapter = new ChatAdapter(messages);
-        chatAdapter.setOnMessageLongClickListener((position, message) -> showMessageOptionsDialog(position, message));
+        chatAdapter.setOnMessageLongClickListener(this::showMessageOptionsDialog);
         binding.messagesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.messagesRecyclerView.setAdapter(chatAdapter);
 
         fetchMessagesFromDatabase(currentChatId);
 
-        assert user != null;
         fetchUserProfilePicture(user.getUid(), uri -> {
             logger.success("Fetched user profile image");
             Glide.with(ChatActivity.this).load(uri).circleCrop().into(binding.profilePicture);
@@ -119,7 +117,7 @@ public class ChatActivity extends AppCompatActivity {
         speechRecognizerUtils = new SpeechRecognizerUtils(this, new SpeechRecognizerUtils.Callback() {
             @Override
             public void onSpeechResult(String text) {
-                binding.textInput.getEditText().setText(text);
+                Objects.requireNonNull(binding.textInput.getEditText()).setText(text);
             }
 
             @Override
@@ -167,7 +165,8 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void fetchMessagesFromDatabase(String chatId) {
-        DatabaseReference chatRef = firebaseDatabase.getReference().child(Constants.FIREBASE_DATABASE.CHATS).child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
+        DatabaseReference chatRef = firebaseDatabase.getReference().child(Constants.FIREBASE_DATABASE.CHATS).child(chatId)
+                .child(Constants.FIREBASE_DATABASE.MESSAGES);
 
         chatRef.orderByChild(Constants.FIREBASE_DATABASE.TIMESTAMP).addChildEventListener(new ChildEventListener() {
             @Override
@@ -177,7 +176,9 @@ public class ChatActivity extends AppCompatActivity {
                 Long timestamp = snapshot.child(Constants.MessageFields.TIMESTAMP).getValue(Long.class);
 
                 if (message != null && messageDeliverUid != null && timestamp != null) {
-                    Message.MessageType messageType = messageDeliverUid.equals(localUserSingleton.getUid()) ? Message.MessageType.SENDER : Message.MessageType.RECEIVER;
+                    Message.MessageType messageType = messageDeliverUid.equals(localUserSingleton.getUid())
+                            ? Message.MessageType.SENDER
+                            : Message.MessageType.RECEIVER;
                     Message messageInstance = new Message(message, timestamp, messageType, messageDeliverUid);
                     messages.add(messageInstance);
                     chatAdapter.notifyItemInserted(messages.size() - 1);
@@ -188,20 +189,25 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {
             }
+
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
             }
+
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 logger.e(error.getMessage(), error.toException());
             }
         });
     }
+
     private void insertMessageToDatabase(String chatId, String text) {
-        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference(Constants.FIREBASE_DATABASE.CHATS).child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
+        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference(Constants.FIREBASE_DATABASE.CHATS).child(chatId)
+                .child(Constants.FIREBASE_DATABASE.MESSAGES);
 
         String messageId = chatRef.push().getKey();
         long timestamp = System.currentTimeMillis() / 1000;
@@ -213,9 +219,7 @@ public class ChatActivity extends AppCompatActivity {
         messageData.put(Constants.MessageFields.TIMESTAMP, timestamp);
 
         assert messageId != null;
-        chatRef.child(messageId).setValue(messageData).addOnSuccessListener(unused -> {
-            logger.success("Added new message successfully");
-        }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+        chatRef.child(messageId).setValue(messageData).addOnSuccessListener(unused -> logger.success("Added new message successfully")).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
     }
 
     private void showMessageOptionsDialog(int position, Message message) {
@@ -237,7 +241,8 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
-        DatabaseReference chatRef = firebaseDatabase.getReference().child(Constants.FIREBASE_DATABASE.CHATS).child(chatRoomId).child(Constants.FIREBASE_DATABASE.MESSAGES);
+        DatabaseReference chatRef = firebaseDatabase.getReference().child(Constants.FIREBASE_DATABASE.CHATS).child(chatRoomId)
+                .child(Constants.FIREBASE_DATABASE.MESSAGES);
 
         chatRef.orderByChild(Constants.MessageFields.TIMESTAMP).equalTo(message.getTimestamp()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

@@ -22,6 +22,18 @@ import androidx.annotation.NonNull;
 
 public class User extends BaseUser implements Parcelable {
 
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
+
     public User(@NonNull String uid, @NonNull String firstName, @NonNull String secondName, @NonNull String email, String profilePicture) {
         super(uid, firstName, secondName, email, profilePicture);
     }
@@ -34,18 +46,6 @@ public class User extends BaseUser implements Parcelable {
                 in.readString() // profilePicture
         );
     }
-
-    public static final Creator<User> CREATOR = new Creator<User>() {
-        @Override
-        public User createFromParcel(Parcel in) {
-            return new User(in);
-        }
-
-        @Override
-        public User[] newArray(int size) {
-            return new User[size];
-        }
-    };
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {

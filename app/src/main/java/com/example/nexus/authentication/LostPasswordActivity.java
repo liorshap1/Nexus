@@ -27,11 +27,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import javax.inject.Inject;
 
 public class LostPasswordActivity extends AppCompatActivity {
-    private ActivityLostPasswordBinding binding;
     @Inject
     FirebaseAuth firebaseAuth;
     @Inject
     AppLogger logger;
+    private ActivityLostPasswordBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +50,7 @@ public class LostPasswordActivity extends AppCompatActivity {
                     .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
         });
 
-        binding.backButton.setOnClickListener(view -> {
-            finish();
-        });
+        binding.backButton.setOnClickListener(view -> finish());
     }
 
     @Override

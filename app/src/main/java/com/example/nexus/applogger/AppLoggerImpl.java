@@ -25,7 +25,8 @@ import java.util.Locale;
 import javax.inject.Inject;
 
 public class AppLoggerImpl implements AppLogger {
-    private static final EnumSet<LogLevel> ENABLED_LEVELS = EnumSet.of(LogLevel.INFO, LogLevel.SUCCESS, LogLevel.ERROR, LogLevel.WARNING, LogLevel.DEBUG, LogLevel.VERBOSE // Remove
+    private static final EnumSet<LogLevel> ENABLED_LEVELS = EnumSet.of(LogLevel.INFO, LogLevel.SUCCESS, LogLevel.ERROR, LogLevel.WARNING, LogLevel.DEBUG,
+            LogLevel.VERBOSE // Remove
     // in
     // release
     // build

@@ -32,10 +32,6 @@ import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.core.User;
 import com.example.nexus.utils.SharedPreferencesUtils;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -46,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PendingRequestsAdapter extends RecyclerView.Adapter<PendingRequestsViewHolder> {
     private final List<User> pendingUsersList;
@@ -56,8 +51,8 @@ public class PendingRequestsAdapter extends RecyclerView.Adapter<PendingRequests
     private final AppLogger logger;
     private final Context context;
 
-    public PendingRequestsAdapter(List<User> pendingUsersList, LocalUserSingleton localUser, FirebaseFirestore firestore, AppLogger appLogger, FirebaseStorage firebaseStorage,
-            Context context) {
+    public PendingRequestsAdapter(List<User> pendingUsersList, LocalUserSingleton localUser, FirebaseFirestore firestore, AppLogger appLogger,
+            FirebaseStorage firebaseStorage, Context context) {
         this.pendingUsersList = pendingUsersList;
         this.localUser = localUser;
         this.firestore = firestore;
@@ -100,7 +95,8 @@ public class PendingRequestsAdapter extends RecyclerView.Adapter<PendingRequests
             currentUserUpdates.put(Constants.UserFields.PENDING_REQUESTS, currentPendingUsersList);
 
             firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUser.getUid()).update(currentUserUpdates)
-                    .addOnSuccessListener(unused -> logger.success("Updated current user friends list")).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+                    .addOnSuccessListener(unused -> logger.success("Updated current user friends list"))
+                    .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
 
             logger.v(pendingUserUid);
             firestore.collection(Constants.Firestore.USERS_COLLECTION).document(pendingUserUid).get().addOnCompleteListener(task -> {
@@ -135,7 +131,8 @@ public class PendingRequestsAdapter extends RecyclerView.Adapter<PendingRequests
             notifyItemRemoved(position);
 
             DocumentReference documentReference = firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUser.getUid());
-            documentReference.update(Constants.UserFields.PENDING_REQUESTS, pendingUsersList).addOnSuccessListener(aVoid -> logger.success("Declined user successfully"))
+            documentReference.update(Constants.UserFields.PENDING_REQUESTS, pendingUsersList)
+                    .addOnSuccessListener(aVoid -> logger.success("Declined user successfully"))
                     .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
         });
     }

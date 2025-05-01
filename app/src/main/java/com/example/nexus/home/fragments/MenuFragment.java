@@ -69,8 +69,8 @@ public class MenuFragment extends Fragment {
             StorageReference storageRef = firebaseStorage.getReference().child(path);
 
             // Delete old profile picture, then upload the new one
-            storageRef.delete().addOnSuccessListener(unused -> logger.success("Deleted current profile picture")).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()))
-                    .addOnCompleteListener(task -> {
+            storageRef.delete().addOnSuccessListener(unused -> logger.success("Deleted current profile picture"))
+                    .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause())).addOnCompleteListener(task -> {
                         // Regardless of delete success or failure, upload the new file
                         storageRef.putFile(uri).addOnSuccessListener(unused -> logger.success("Uploaded new profile picture"))
                                 .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));

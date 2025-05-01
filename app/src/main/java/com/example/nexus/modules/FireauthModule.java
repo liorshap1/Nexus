@@ -16,11 +16,13 @@
 package com.example.nexus.modules;
 
 import com.google.firebase.auth.FirebaseAuth;
+
+import javax.inject.Singleton;
+
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
-import javax.inject.Singleton;
 
 @Module
 @InstallIn(SingletonComponent.class)

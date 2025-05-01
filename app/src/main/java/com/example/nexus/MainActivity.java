@@ -59,16 +59,16 @@ public class MainActivity extends AppCompatActivity {
     FirebaseAuth firebaseAuth;
     @Inject
     AppLogger logger;
+    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) {
+                    logger.i("All permissions granted");
+                } else {
+                    logger.w("Permissions are not granted");
+                }
+            });
     private ActivityMainBinding binding;
     private Intent fetchUsersServiceIntent;
-
-    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-        if (isGranted) {
-            logger.i("All permissions granted");
-        } else {
-            logger.w("Permissions are not granted");
-        }
-    });
 
     @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private void askApplicationPermissions() {
@@ -116,8 +116,8 @@ public class MainActivity extends AppCompatActivity {
                     retrieveLocalUserOnce(firebaseUser.getUid(), doc -> {
                         logger.v(doc.toString());
                         localUserSingleton.initializeLocalUserSingleton(firebaseUser.getUid(), doc.getString(Constants.UserFields.FIRST_NAME),
-                                doc.getString(Constants.UserFields.SECOND_NAME), doc.getString(Constants.UserFields.EMAIL), doc.getString(Constants.UserFields.PROFILE_PICTURE),
-                                (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
+                                doc.getString(Constants.UserFields.SECOND_NAME), doc.getString(Constants.UserFields.EMAIL),
+                                doc.getString(Constants.UserFields.PROFILE_PICTURE), (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
 
                         logger.v(localUserSingleton.toString());
                         startService(fetchUsersServiceIntent);

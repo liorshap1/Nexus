@@ -37,6 +37,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -55,6 +56,7 @@ public class LoginActivity extends AppCompatActivity {
     AppLogger logger;
     private ActivityLoginBinding binding;
     private Disposable loginDisposable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,11 +82,10 @@ public class LoginActivity extends AppCompatActivity {
             String email = GetTextUtils.getTextFromInput(binding.emailInput);
             String password = GetTextUtils.getTextFromInput(binding.passwordInput);
 
-            loginDisposable = signIn(email, password).doOnSubscribe(disposable -> {
-                binding.progressBar.setVisibility(VISIBLE);
-            }).observeOn(AndroidSchedulers.mainThread()).doOnSuccess(uid -> localUserSingleton.setUid(uid)).flatMap(this::retrieveUser).subscribe(docSnap -> {
-                localUserSingleton.initializeLocalUserSingleton(docSnap.getString(Constants.UserFields.FIRST_NAME), docSnap.getString(Constants.UserFields.SECOND_NAME),
-                        docSnap.getString(Constants.UserFields.EMAIL), docSnap.getString(Constants.UserFields.PROFILE_PICTURE), localUserSingleton.getUid(),
+            loginDisposable = signIn(email, password).doOnSubscribe(disposable -> binding.progressBar.setVisibility(VISIBLE)).observeOn(AndroidSchedulers.mainThread()).doOnSuccess(uid -> localUserSingleton.setUid(uid)).flatMap(this::retrieveUser).subscribe(docSnap -> {
+                localUserSingleton.initializeLocalUserSingleton(docSnap.getString(Constants.UserFields.FIRST_NAME),
+                        docSnap.getString(Constants.UserFields.SECOND_NAME), docSnap.getString(Constants.UserFields.EMAIL),
+                        docSnap.getString(Constants.UserFields.PROFILE_PICTURE), localUserSingleton.getUid(),
                         (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS));
 
                 startService(fetchUsersServiceIntent);
@@ -95,9 +96,7 @@ public class LoginActivity extends AppCompatActivity {
                 logger.i("Inserted user credentials in shared preferences");
 
                 startActivity(new Intent(LoginActivity.this, MainHomeActivity.class));
-            }, e -> {
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            });
+            }, e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
         });
 
         binding.registerButton.setOnClickListener(view -> {
@@ -112,18 +111,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     protected Single<String> signIn(String email, String password) {
-        return Single.create(emitter -> {
-            firebaseAuth.signInWithEmailAndPassword(email, password).addOnSuccessListener(authResult -> {
-                String uid = authResult.getUser().getUid();
-                emitter.onSuccess(uid);
-            }).addOnFailureListener(emitter::onError);
-        });
+        return Single.create(emitter -> firebaseAuth.signInWithEmailAndPassword(email, password).addOnSuccessListener(authResult -> {
+            String uid = Objects.requireNonNull(authResult.getUser()).getUid();
+            emitter.onSuccess(uid);
+        }).addOnFailureListener(emitter::onError));
     }
 
     protected Single<DocumentSnapshot> retrieveUser(String uid) {
-        return Single.create(emitter -> {
-            FirebaseFirestore.getInstance().collection("users").document(uid).get().addOnSuccessListener(emitter::onSuccess).addOnFailureListener(emitter::onError);
-        });
+        return Single.create(emitter -> FirebaseFirestore.getInstance().collection("users").document(uid).get().addOnSuccessListener(emitter::onSuccess)
+                .addOnFailureListener(emitter::onError));
     }
 
     @Override

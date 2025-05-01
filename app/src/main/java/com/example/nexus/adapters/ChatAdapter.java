@@ -35,6 +35,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatHolder> {
     public ChatAdapter(List<Message> messageList) {
         this.messageList = messageList;
     }
+
     public void setOnMessageLongClickListener(OnMessageLongClickListener listener) {
         this.longClickListener = listener;
     }

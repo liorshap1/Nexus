@@ -19,7 +19,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+
 import androidx.annotation.Nullable;
+
 import com.example.nexus.Constants;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
@@ -28,10 +30,14 @@ import com.example.nexus.utils.SharedPreferencesUtils;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+
 import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
@@ -61,7 +67,7 @@ public class FetchUsersService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Validate UID before proceeding
         String uid = localUserSingleton.getUid();
-        if (uid == null || uid.isEmpty()) {
+        if (uid.isEmpty()) {
             logger.i("UID is null or empty! Cannot fetch friends.");
             stopSelf();
             return START_NOT_STICKY;
@@ -75,9 +81,6 @@ public class FetchUsersService extends Service {
     private void fetchConnectedUserFriends(String uid) {
         // Ensure the USERS_COLLECTION constant has no trailing slash
         String collection = Constants.Firestore.USERS_COLLECTION;
-        if (collection.endsWith("/")) {
-            collection = collection.substring(0, collection.length() - 1);
-        }
 
         firestore.collection(collection).document(uid).addSnapshotListener((value, error) -> {
             if (error != null) {
@@ -135,7 +138,7 @@ public class FetchUsersService extends Service {
                         logger.w("User document doesn't exist for UID: " + uid);
                     }
                 } else {
-                    logger.e(task.getException().getMessage(), task.getException());
+                    logger.e(Objects.requireNonNull(task.getException()).getMessage(), task.getException());
                 }
             });
         } else {
