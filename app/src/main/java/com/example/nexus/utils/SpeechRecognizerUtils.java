@@ -23,6 +23,8 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.util.Objects;
 
 public class SpeechRecognizerUtils {
@@ -73,7 +75,7 @@ public class SpeechRecognizerUtils {
             }
 
             @Override
-            public void onResults(Bundle results) {
+            public void onResults(@NonNull Bundle results) {
                 String recognizedText = Objects.requireNonNull(results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)).get(0);
                 callback.onSpeechResult(recognizedText);
             }

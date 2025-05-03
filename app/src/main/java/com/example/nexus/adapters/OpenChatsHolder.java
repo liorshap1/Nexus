@@ -42,7 +42,7 @@ public class OpenChatsHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    public void bind(User user, String lastMessage) {
+    public void bind(@NonNull User user, String lastMessage) {
         this.username.setText(user.getFullName());
         this.email.setText(lastMessage);
     }

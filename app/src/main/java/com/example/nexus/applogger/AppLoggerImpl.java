@@ -17,6 +17,8 @@ package com.example.nexus.applogger;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumSet;
@@ -38,11 +40,13 @@ public class AppLoggerImpl implements AppLogger {
     public AppLoggerImpl() {
     }
 
+    @NonNull
     private String getTimestamp() {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault());
         return sdf.format(new Date());
     }
 
+    @NonNull
     private String getCallerClassName() {
         StackTraceElement[] stack = Thread.currentThread().getStackTrace();
         for (int i = 4; i < stack.length; i++) {
@@ -55,12 +59,12 @@ public class AppLoggerImpl implements AppLogger {
     }
 
     @Override
-    public void log(LogLevel level, String message) {
+    public void log(@NonNull LogLevel level, String message) {
         log(level, message, null);
     }
 
     @Override
-    public void log(LogLevel level, String message, Throwable throwable) {
+    public void log(@NonNull LogLevel level, String message, Throwable throwable) {
         if (!ENABLED_LEVELS.contains(level))
             return;
 

@@ -20,15 +20,19 @@ import static android.content.Context.MODE_PRIVATE;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 public class SharedPreferencesUtils {
     private static final String PREFS_NAME = "NexusPrefs";
 
-    public static void insertData(Context context, String key, String data) {
+    public static void insertData(@NonNull Context context, String key, String data) {
         SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         preferences.edit().putString(key, data).apply();
     }
 
-    public static String getDataByKey(Context context, String key) {
+    @Nullable
+    public static String getDataByKey(@NonNull Context context, String key) {
         SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         return preferences.getString(key, null);
     }

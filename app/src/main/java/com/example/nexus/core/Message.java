@@ -15,17 +15,21 @@
  */
 package com.example.nexus.core;
 
+import java.util.Map;
+
 public class Message {
     private final String messageDeliverUid;
     private String text;
     private long timestamp;
     private MessageType messageType;
+    private Map<String, String> reactions;
 
-    public Message(String text, long timestamp, MessageType messageType, String messageDeliverUid) {
+    public Message(String text, long timestamp, MessageType messageType, String messageDeliverUid, Map<String, String> reactions) {
         this.text = text;
         this.timestamp = timestamp;
         this.messageType = messageType;
         this.messageDeliverUid = messageDeliverUid;
+        this.reactions = reactions;
     }
 
     public String getText() {
@@ -58,5 +62,13 @@ public class Message {
 
     public enum MessageType {
         SENDER, RECEIVER
+    }
+
+    public Map<String, String> getReactions() {
+        return reactions;
+    }
+
+    public void setReactions(Map<String, String> reactions) {
+        this.reactions = reactions;
     }
 }

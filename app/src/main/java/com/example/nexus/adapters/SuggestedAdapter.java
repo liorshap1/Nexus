@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -38,6 +39,7 @@ import java.util.List;
 
 public class SuggestedAdapter extends RecyclerView.Adapter<SuggestedViewHolder> {
     private final AppLogger logger;
+    @NonNull
     private final List<User> usersList;
     private final Context context;
     private final FirebaseStorage firebaseStorage;
@@ -72,7 +74,7 @@ public class SuggestedAdapter extends RecyclerView.Adapter<SuggestedViewHolder> 
         holder.bind(username, email);
     }
 
-    private void fetchUserProfilePicture(String uid, Callback callback) {
+    private void fetchUserProfilePicture(String uid, @NonNull Callback callback) {
         String path = "user_profile" + uid;
         String localUri = SharedPreferencesUtils.getDataByKey(context, path);
 
@@ -90,12 +92,13 @@ public class SuggestedAdapter extends RecyclerView.Adapter<SuggestedViewHolder> 
         }
     }
 
+    @NonNull
     public List<User> getUsers() {
         return usersList;
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    public void setUsers(List<User> newUsers) {
+    public void setUsers(@Nullable List<User> newUsers) {
         usersList.clear();
         if (newUsers != null) {
             usersList.addAll(newUsers);

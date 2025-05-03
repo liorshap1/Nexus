@@ -21,9 +21,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
+import androidx.annotation.NonNull;
+
 // ChatGPT
 public class GenerateAvatarUtils {
-    public static String getInitials(String fullName) {
+    @NonNull
+    public static String getInitials(@NonNull String fullName) {
         String[] parts = fullName.trim().split("\\s+");
         String initials = "";
         for (int i = 0; i < Math.min(2, parts.length); i++) {
@@ -32,7 +35,7 @@ public class GenerateAvatarUtils {
         return initials;
     }
 
-    public static int getRandomColor(String key) {
+    public static int getRandomColor(@NonNull String key) {
         int[] colors = {Color.parseColor("#F44336"), // Red
                 Color.parseColor("#E91E63"), // Pink
                 Color.parseColor("#9C27B0"), // Purple
@@ -46,7 +49,8 @@ public class GenerateAvatarUtils {
         return colors[hash % colors.length];
     }
 
-    public static Bitmap generateInitialsAvatar(String name, int sizeInDp, Context context) {
+    @NonNull
+    public static Bitmap generateInitialsAvatar(@NonNull String name, int sizeInDp, @NonNull Context context) {
         // Convert DP to pixels
         float scale = context.getResources().getDisplayMetrics().density;
         int sizeInPx = (int) (sizeInDp * scale + 0.5f);

@@ -22,6 +22,8 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -33,6 +35,7 @@ import com.example.nexus.core.User;
 import com.example.nexus.core.services.FetchUsersService;
 import com.example.nexus.databinding.ActivityFriendsBinding;
 import com.example.nexus.utils.GetTextUtils;
+import com.example.nexus.utils.SnackbarUtils;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -55,8 +58,9 @@ public class FriendsActivity extends AppCompatActivity {
     FirebaseFirestore firestore;
     @Inject
     FirebaseStorage firebaseStorage;
-    private List<User> pendingUsersList = new ArrayList<>();
+    private final List<User> pendingUsersList = new ArrayList<>();
     private ActivityFriendsBinding binding;
+    @Nullable
     private FetchUsersService fetchUsersService;
     private PendingRequestsAdapter pendingRequestsAdapter;
     private boolean isBound = false;
@@ -136,7 +140,7 @@ public class FriendsActivity extends AppCompatActivity {
         });
     }
 
-    private void fetchUser(String uid, Runnable onComplete) {
+    private void fetchUser(@NonNull String uid, @NonNull Runnable onComplete) {
         firestore.collection(Constants.Firestore.USERS_COLLECTION).document(uid).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot docSnap = task.getResult();
@@ -184,9 +188,10 @@ public class FriendsActivity extends AppCompatActivity {
 
                     pendingRequests.add(localUserSingleton.getUid());
                     firestore.collection(Constants.Firestore.USERS_COLLECTION).document(targetUserUid)
-                            .update(Constants.UserFields.PENDING_REQUESTS, pendingRequests)
-                            .addOnSuccessListener(aVoid -> logger.success("Friend request sent to: " + targetEmail))
-                            .addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+                            .update(Constants.UserFields.PENDING_REQUESTS, pendingRequests).addOnSuccessListener(aVoid -> {
+                                logger.success("Friend request sent to: " + targetEmail);
+                                SnackbarUtils.build(FriendsActivity.this).setMessage("Sent friend request!").show();
+                            }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
                 }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
     }
 

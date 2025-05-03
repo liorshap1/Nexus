@@ -137,7 +137,7 @@ public class PendingRequestsAdapter extends RecyclerView.Adapter<PendingRequests
         });
     }
 
-    private void fetchUserProfilePicture(String uid, Callback callback) {
+    private void fetchUserProfilePicture(String uid, @NonNull Callback callback) {
         String path = "user_profile" + uid;
         String localUri = SharedPreferencesUtils.getDataByKey(context, path);
 

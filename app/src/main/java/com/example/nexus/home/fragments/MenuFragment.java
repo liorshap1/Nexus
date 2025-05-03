@@ -29,10 +29,12 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.example.nexus.Constants;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.authentication.LoginActivity;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.databinding.FragmentMenuBinding;
+import com.example.nexus.home.ChangeSettingActivity;
 import com.example.nexus.utils.SharedPreferencesUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -55,15 +57,14 @@ public class MenuFragment extends Fragment {
     FirebaseFirestore firebaseFirestore;
     @Inject
     FirebaseAuth firebaseAuth;
-
     private FragmentMenuBinding binding;
-    // Registers a photo picker activity launcher in single-select mode.
+    @NonNull
     ActivityResultLauncher<PickVisualMediaRequest> pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
         if (uri != null) {
-            Glide.with(getContext()).load(uri).circleCrop().into(binding.profileImage);
+            Glide.with(requireContext()).load(uri).circleCrop().into(binding.profileImage);
 
             String path = "user_profile" + localUser.getUid();
-            SharedPreferencesUtils.insertData(getContext(), path, uri.toString());
+            SharedPreferencesUtils.insertData(requireContext(), path, uri.toString());
             logger.success("Inserted user profile picture in shared preferences");
 
             StorageReference storageRef = firebaseStorage.getReference().child(path);
@@ -94,13 +95,11 @@ public class MenuFragment extends Fragment {
         binding.userEmail.setText(localUser.getEmail());
 
         fetchUserProfilePicture(localUser.getUid(), uri -> {
-            Glide.with(getContext()).load(uri).circleCrop().into(binding.profileImage);
+            Glide.with(requireContext()).load(uri).circleCrop().into(binding.profileImage);
         });
 
         binding.profileImage.setOnClickListener(view -> {
-            // Launch the photo picker and let the user choose only images.
             pickMedia.launch(new PickVisualMediaRequest.Builder().setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
-
         });
 
         binding.signOutButton.setOnClickListener(view -> {
@@ -110,17 +109,23 @@ public class MenuFragment extends Fragment {
             startActivity(new Intent(getContext(), LoginActivity.class));
         });
 
+        binding.changeEmailButton.setOnClickListener(view -> {
+            Intent intent = new Intent(requireContext(), ChangeSettingActivity.class);
+            intent.putExtra(Constants.ChangeSettingActivity.CHANGE_SETTING, Constants.UserFields.EMAIL);
+            startActivity(intent);
+        });
+
         return binding.getRoot();
     }
 
-    private void fetchUserProfilePicture(String uid, Callback callback) {
+    private void fetchUserProfilePicture(String uid, @NonNull Callback callback) {
         String path = "user_profile" + uid;
-        String localUri = SharedPreferencesUtils.getDataByKey(getContext(), path);
+        String localUri = SharedPreferencesUtils.getDataByKey(requireContext(), path);
 
         if (localUri == null) {
             StorageReference storageRef = firebaseStorage.getReference().child(path);
             storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                SharedPreferencesUtils.insertData(getContext(), path, uri.toString());
+                SharedPreferencesUtils.insertData(requireContext(), path, uri.toString());
                 logger.success("Fetched user profile picture");
 
                 callback.onComplete(uri);

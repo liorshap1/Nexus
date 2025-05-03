@@ -33,6 +33,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -76,10 +77,12 @@ public class MainHomeActivity extends AppCompatActivity {
     @Inject
     AppLogger logger;
     private ActivityMainHomeBinding binding;
+    @Nullable
     private FetchUsersService fetchUsersService;
     private SuggestedAdapter suggestedAdapter;
     private FragmentManager fragmentManager;
     private ChatsFragment chatsFragment;
+    private MenuFragment menuFragment;
     private boolean isBound;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @SuppressLint({"CheckResult", "NotifyDataSetChanged"})
@@ -107,7 +110,6 @@ public class MainHomeActivity extends AppCompatActivity {
             logger.w("Service disconnected");
         }
     };
-    private MenuFragment menuFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,7 +125,7 @@ public class MainHomeActivity extends AppCompatActivity {
 
         fetchUserChats(new Callback() {
             @Override
-            public void onComplete(List<String> chatIds) {
+            public void onComplete(@NonNull List<String> chatIds) {
                 Intent serviceIntent = new Intent(MainHomeActivity.this, NotificationsService.class);
                 serviceIntent.putStringArrayListExtra(Constants.FIREBASE_DATABASE.CHATS, new ArrayList<>(chatIds));
 
@@ -135,7 +137,7 @@ public class MainHomeActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(Exception e) {
+            public void onError(@NonNull Exception e) {
                 logger.e(e.getMessage(), e);
             }
         });
@@ -154,14 +156,12 @@ public class MainHomeActivity extends AppCompatActivity {
         bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
 
         binding.suggestedRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-            GestureDetector gestureDetector = new GestureDetector(MainHomeActivity.this, new GestureDetector.SimpleOnGestureListener() {
+            final GestureDetector gestureDetector = new GestureDetector(MainHomeActivity.this, new GestureDetector.SimpleOnGestureListener() {
                 @Override
                 public boolean onSingleTapUp(@NonNull MotionEvent e) {
                     return true;
                 }
-            }
-
-            );
+            });
 
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
@@ -181,7 +181,7 @@ public class MainHomeActivity extends AppCompatActivity {
 
             @Override
             public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-                logger.i(rv.toString());
+
             }
 
             @Override
@@ -232,7 +232,7 @@ public class MainHomeActivity extends AppCompatActivity {
         });
     }
 
-    private void fetchUserChats(Callback callback) {
+    private void fetchUserChats(@NonNull Callback callback) {
         firebaseDatabase.getReference().child(Constants.FIREBASE_DATABASE.CHATS).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

@@ -103,7 +103,7 @@ public class RegisterActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onInsertFailed(Exception e) {
+                    public void onInsertFailed(@NonNull Exception e) {
                         logger.e(e.getMessage(), e.getCause());
                     }
                 });
@@ -136,7 +136,8 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
-    public Uri bitmapToUri(Context context, Bitmap bitmap) {
+    @Nullable
+    public Uri bitmapToUri(@NonNull Context context, @NonNull Bitmap bitmap) {
         try {
             File file = new File(context.getCacheDir(), "image_" + System.currentTimeMillis() + ".png");
             FileOutputStream out = new FileOutputStream(file);
@@ -150,7 +151,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    private void insertUserToCollection(User user, Callback callback) {
+    private void insertUserToCollection(@NonNull User user, @NonNull Callback callback) {
         HashMap<String, Object> userMap = new HashMap<>();
         userMap.put(Constants.UserFields.FIRST_NAME, user.getFirstName());
         userMap.put(Constants.UserFields.SECOND_NAME, user.getSecondName());

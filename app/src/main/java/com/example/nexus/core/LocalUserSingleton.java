@@ -15,6 +15,8 @@
  */
 package com.example.nexus.core;
 
+import androidx.annotation.NonNull;
+
 import com.example.nexus.Constants;
 
 import java.util.ArrayList;
@@ -28,7 +30,8 @@ public class LocalUserSingleton extends BaseUser {
         super();
     }
 
-    public void initializeLocalUserSingleton(String uid, String firstName, String secondName, String email, String profilePicture, ArrayList<String> friends) {
+    public void initializeLocalUserSingleton(@NonNull String uid, @NonNull String firstName, @NonNull String secondName, @NonNull String email,
+            String profilePicture, ArrayList<String> friends) {
         setUid(uid);
         setFirstName(firstName);
         setSecondName(secondName);
@@ -37,7 +40,7 @@ public class LocalUserSingleton extends BaseUser {
         this.friends = friends;
     }
 
-    public void initializeLocalUserSingleton(HashMap<String, Object> userMap) {
+    public void initializeLocalUserSingleton(@NonNull HashMap<String, Object> userMap) {
         setUid((String) Objects.requireNonNull(userMap.get(Constants.UserFields.UID)));
         setFirstName((String) Objects.requireNonNull(userMap.get(Constants.UserFields.FIRST_NAME)));
         setSecondName((String) Objects.requireNonNull(userMap.get(Constants.UserFields.SECOND_NAME)));

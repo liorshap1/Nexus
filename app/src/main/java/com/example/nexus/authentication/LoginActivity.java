@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.nexus.Constants;
@@ -82,21 +83,23 @@ public class LoginActivity extends AppCompatActivity {
             String email = GetTextUtils.getTextFromInput(binding.emailInput);
             String password = GetTextUtils.getTextFromInput(binding.passwordInput);
 
-            loginDisposable = signIn(email, password).doOnSubscribe(disposable -> binding.progressBar.setVisibility(VISIBLE)).observeOn(AndroidSchedulers.mainThread()).doOnSuccess(uid -> localUserSingleton.setUid(uid)).flatMap(this::retrieveUser).subscribe(docSnap -> {
-                localUserSingleton.initializeLocalUserSingleton(docSnap.getString(Constants.UserFields.FIRST_NAME),
-                        docSnap.getString(Constants.UserFields.SECOND_NAME), docSnap.getString(Constants.UserFields.EMAIL),
-                        docSnap.getString(Constants.UserFields.PROFILE_PICTURE), localUserSingleton.getUid(),
-                        (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS));
+            loginDisposable = signIn(email, password).doOnSubscribe(disposable -> binding.progressBar.setVisibility(VISIBLE))
+                    .observeOn(AndroidSchedulers.mainThread()).doOnSuccess(uid -> localUserSingleton.setUid(uid)).flatMap(this::fetchUser)
+                    .subscribe(docSnap -> {
+                        localUserSingleton.initializeLocalUserSingleton(docSnap.getString(Constants.UserFields.FIRST_NAME),
+                                docSnap.getString(Constants.UserFields.SECOND_NAME), docSnap.getString(Constants.UserFields.EMAIL),
+                                docSnap.getString(Constants.UserFields.PROFILE_PICTURE), localUserSingleton.getUid(),
+                                (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS));
 
-                startService(fetchUsersServiceIntent);
-                logger.success("Started Fetching Service, LoginActivity");
+                        startService(fetchUsersServiceIntent);
+                        logger.success("Started Fetching Service, LoginActivity");
 
-                SharedPreferencesUtils.insertData(LoginActivity.this, Constants.UserFields.EMAIL, email);
-                SharedPreferencesUtils.insertData(LoginActivity.this, Constants.UserFields.PASSWORD, password);
-                logger.i("Inserted user credentials in shared preferences");
+                        SharedPreferencesUtils.insertData(LoginActivity.this, Constants.UserFields.EMAIL, email);
+                        SharedPreferencesUtils.insertData(LoginActivity.this, Constants.UserFields.PASSWORD, password);
+                        logger.i("Inserted user credentials in shared preferences");
 
-                startActivity(new Intent(LoginActivity.this, MainHomeActivity.class));
-            }, e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
+                        startActivity(new Intent(LoginActivity.this, MainHomeActivity.class));
+                    }, e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
         });
 
         binding.registerButton.setOnClickListener(view -> {
@@ -110,14 +113,14 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    protected Single<String> signIn(String email, String password) {
+    protected Single<String> signIn(@NonNull String email, @NonNull String password) {
         return Single.create(emitter -> firebaseAuth.signInWithEmailAndPassword(email, password).addOnSuccessListener(authResult -> {
             String uid = Objects.requireNonNull(authResult.getUser()).getUid();
             emitter.onSuccess(uid);
         }).addOnFailureListener(emitter::onError));
     }
 
-    protected Single<DocumentSnapshot> retrieveUser(String uid) {
+    protected Single<DocumentSnapshot> fetchUser(@NonNull String uid) {
         return Single.create(emitter -> FirebaseFirestore.getInstance().collection("users").document(uid).get().addOnSuccessListener(emitter::onSuccess)
                 .addOnFailureListener(emitter::onError));
     }

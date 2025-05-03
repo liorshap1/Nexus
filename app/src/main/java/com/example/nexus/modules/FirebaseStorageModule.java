@@ -15,6 +15,8 @@
  */
 package com.example.nexus.modules;
 
+import androidx.annotation.NonNull;
+
 import com.google.firebase.storage.FirebaseStorage;
 
 import javax.inject.Singleton;
@@ -27,6 +29,7 @@ import dagger.hilt.components.SingletonComponent;
 @Module
 @InstallIn(SingletonComponent.class)
 public class FirebaseStorageModule {
+    @NonNull
     @Provides
     @Singleton
     public static FirebaseStorage provideFirebaseStorage() {

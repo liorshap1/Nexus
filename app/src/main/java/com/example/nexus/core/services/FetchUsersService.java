@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.nexus.Constants;
@@ -78,7 +79,7 @@ public class FetchUsersService extends Service {
         return START_STICKY;
     }
 
-    private void fetchConnectedUserFriends(String uid) {
+    private void fetchConnectedUserFriends(@NonNull String uid) {
         // Ensure the USERS_COLLECTION constant has no trailing slash
         String collection = Constants.Firestore.USERS_COLLECTION;
 
@@ -108,7 +109,7 @@ public class FetchUsersService extends Service {
         });
     }
 
-    private void fetchSingleUser(String uid) {
+    private void fetchSingleUser(@Nullable String uid) {
         if (uid == null || uid.isEmpty()) {
             logger.v("Friend UID is null or empty, skipping fetch.");
             return;
@@ -149,6 +150,7 @@ public class FetchUsersService extends Service {
         }
     }
 
+    @NonNull
     public BehaviorSubject<List<User>> observeCurrentUsers() {
         return usersSubject;
     }
@@ -160,6 +162,7 @@ public class FetchUsersService extends Service {
     }
 
     public class LocalBinder extends Binder {
+        @NonNull
         public FetchUsersService getService() {
             return FetchUsersService.this;
         }

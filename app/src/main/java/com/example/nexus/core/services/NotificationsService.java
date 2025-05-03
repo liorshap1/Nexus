@@ -73,12 +73,12 @@ public class NotificationsService extends Service {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(@NonNull Intent intent, int flags, int startId) {
         createNotificationChannel();
 
         NotificationCompat.Builder foregroundBuilder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID)
                 .setContentTitle("Notification Service Running").setContentText("Listening for new messages").setPriority(NotificationCompat.PRIORITY_LOW)
-                .setSmallIcon(R.drawable.gradient_button); // <-- חובה!
+                .setSmallIcon(R.drawable.gradient_button);
 
         startForeground(FOREGROUND_NOTIFICATION_ID, foregroundBuilder.build());
 
@@ -111,7 +111,7 @@ public class NotificationsService extends Service {
         }
     }
 
-    private void createNotification(Message message) {
+    private void createNotification(@NonNull Message message) {
         var sensitizedUserJson = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + message.getMessageDeliverUid());
         User user = gson.fromJson(sensitizedUserJson, User.class);
 
@@ -131,7 +131,7 @@ public class NotificationsService extends Service {
         notificationManagerCompat.notify(NOTIFICATION_ID, builder.build());
     }
 
-    private void startServiceListener(String chatId) {
+    private void startServiceListener(@NonNull String chatId) {
         messagesRef = firebaseDatabase.getReference(Constants.FIREBASE_DATABASE.CHATS).child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
 
         messageListener = new ChildEventListener() {
@@ -142,7 +142,7 @@ public class NotificationsService extends Service {
                     String senderUid = snapshot.child(Constants.MessageFields.DELIVER_UID).getValue(String.class);
                     if (senderUid != null && !senderUid.equals(firebaseAuth.getCurrentUser().getUid())) {
                         String message = snapshot.child(Constants.MessageFields.MESSAGE).getValue(String.class);
-                        createNotification(new Message(message, 0, null, senderUid));
+                        // createNotification(new Message(message, 0, null, senderUid));
                     }
                 }
             }
@@ -179,6 +179,7 @@ public class NotificationsService extends Service {
     }
 
     public class NotificationsServiceBinder extends Binder {
+        @NonNull
         public NotificationsService getService() {
             return NotificationsService.this;
         }

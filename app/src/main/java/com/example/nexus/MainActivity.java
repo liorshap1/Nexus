@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    protected void retrieveLocalUserOnce(String uid, Callback callback) {
+    protected void retrieveLocalUserOnce(@NonNull String uid, @NonNull Callback callback) {
         firebaseFirestore.collection(Constants.Firestore.USERS_COLLECTION).document(uid).get() // <-- one-time network + cache fetch
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {

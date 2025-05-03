@@ -15,6 +15,8 @@
  */
 package com.example.nexus.modules;
 
+import androidx.annotation.NonNull;
+
 import com.google.firebase.database.FirebaseDatabase;
 
 import javax.inject.Singleton;
@@ -27,6 +29,7 @@ import dagger.hilt.components.SingletonComponent;
 @Module
 @InstallIn(SingletonComponent.class)
 public class FirebaseDatabaseModule {
+    @NonNull
     @Provides
     @Singleton
     public static FirebaseDatabase provideRealtimeDatabase() {

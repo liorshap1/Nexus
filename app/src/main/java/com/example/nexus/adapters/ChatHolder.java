@@ -15,25 +15,44 @@
  */
 package com.example.nexus.adapters;
 
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nexus.R;
 
+import java.util.HashSet;
+import java.util.Map;
+
 public class ChatHolder extends RecyclerView.ViewHolder {
     private final TextView message;
+    private final TextView reactions;
 
     public ChatHolder(@NonNull View itemView) {
         super(itemView);
 
         message = itemView.findViewById(R.id.text);
+        reactions = itemView.findViewById(R.id.reactions);
     }
 
-    public void bind(String text) {
+    public void bind(String text, @Nullable Map<String, String> reactionsMap) {
         message.setText(text);
+        if (reactionsMap != null && !reactionsMap.isEmpty()) {
+            StringBuilder reactionText = new StringBuilder();
+            for (String emoji : new HashSet<>(reactionsMap.values())) {
+                reactionText.append(emoji).append(" ");
+            }
+            Log.d("ARAB", reactionText.toString());
+            reactions.setText(reactionText.toString().trim());
+            reactions.setVisibility(View.VISIBLE);
+        } else {
+            reactions.setText("");
+            reactions.setVisibility(View.GONE);
+        }
     }
 
     public void setOnMessageLongClickListener(View.OnLongClickListener listener) {

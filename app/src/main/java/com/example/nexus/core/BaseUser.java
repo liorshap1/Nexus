@@ -84,6 +84,7 @@ public abstract class BaseUser {
         this.profilePicture = profilePicture;
     }
 
+    @NonNull
     public String getFullName() {
         return this.firstName + " " + this.secondName;
     }

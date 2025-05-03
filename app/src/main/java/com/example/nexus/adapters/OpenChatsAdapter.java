@@ -40,6 +40,7 @@ import java.util.List;
 public class OpenChatsAdapter extends RecyclerView.Adapter<OpenChatsHolder> {
     private final AppLogger logger;
     private final FirebaseStorage firebaseStorage;
+    @NonNull
     private final List<OpenChat> openChats;
     private final Context context;
 
@@ -66,7 +67,7 @@ public class OpenChatsAdapter extends RecyclerView.Adapter<OpenChatsHolder> {
         holder.bind(user, lastMessage);
     }
 
-    private void fetchUserProfilePicture(String uid, SuggestedAdapter.Callback callback) {
+    private void fetchUserProfilePicture(String uid, @NonNull SuggestedAdapter.Callback callback) {
         String path = "user_profile" + uid;
         String localUri = SharedPreferencesUtils.getDataByKey(context, path);
 
@@ -88,6 +89,10 @@ public class OpenChatsAdapter extends RecyclerView.Adapter<OpenChatsHolder> {
     public void addSingleChat(OpenChat openChat) {
         this.openChats.add(openChat);
         notifyDataSetChanged();
+    }
+
+    public List<OpenChat> getOpenChats() {
+        return this.openChats;
     }
     public void clear() {
         this.openChats.clear();

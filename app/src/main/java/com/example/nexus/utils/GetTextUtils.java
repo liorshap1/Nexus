@@ -15,17 +15,20 @@
  */
 package com.example.nexus.utils;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.Objects;
 
 public class GetTextUtils {
-    public static String getTextFromInput(TextInputLayout textInputLayout) {
+    @NonNull
+    public static String getTextFromInput(@NonNull TextInputLayout textInputLayout) {
         assert textInputLayout != null;
         return (Objects.requireNonNull(textInputLayout.getEditText()).getText().toString());
     }
 
-    public static void setInputText(TextInputLayout textInputLayout, String text) {
+    public static void setInputText(@NonNull TextInputLayout textInputLayout, String text) {
         assert textInputLayout != null;
         Objects.requireNonNull(textInputLayout.getEditText()).setText(text);
     }

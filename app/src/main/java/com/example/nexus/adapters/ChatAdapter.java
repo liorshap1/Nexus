@@ -15,33 +15,37 @@
  */
 package com.example.nexus.adapters;
 
-import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ListAdapter;
 
 import com.example.nexus.R;
 import com.example.nexus.core.Message;
+import com.example.nexus.utils.MessageDiffCallbackUtil;
 
-import java.util.List;
+public class ChatAdapter extends ListAdapter<Message, ChatHolder> {
 
-public class ChatAdapter extends RecyclerView.Adapter<ChatHolder> {
-    private final List<Message> messageList;
     private OnMessageLongClickListener longClickListener;
+    private OnMessageClickListener messageClickListener;
 
-    public ChatAdapter(List<Message> messageList) {
-        this.messageList = messageList;
+    public ChatAdapter() {
+        super(new MessageDiffCallbackUtil());
     }
 
     public void setOnMessageLongClickListener(OnMessageLongClickListener listener) {
         this.longClickListener = listener;
     }
 
+    public void setOnMessageClickListener(OnMessageClickListener listener) {
+        this.messageClickListener = listener;
+    }
+
+    @Override
     public int getItemViewType(int position) {
-        Message message = messageList.get(position);
+        Message message = getItem(position);
         return message.getMessageType() == Message.MessageType.SENDER ? R.layout.sender_message : R.layout.receiver_message;
     }
 
@@ -54,8 +58,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ChatHolder holder, int position) {
-        Message message = messageList.get(position);
-        holder.bind(message.getText());
+        Message message = getItem(position);
+        holder.bind(message.getText(), message.getReactions());
 
         holder.setOnMessageLongClickListener(v -> {
             if (longClickListener != null) {
@@ -63,26 +67,20 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatHolder> {
             }
             return true;
         });
-    }
 
-    @Override
-    public int getItemCount() {
-        return messageList.size();
-    }
-
-    public void addMessage(Message message) {
-        messageList.add(message);
-        notifyItemInserted(messageList.size() - 1);
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    public void updateMessages(List<Message> messages) {
-        messageList.clear();
-        messageList.addAll(messages);
-        notifyDataSetChanged();
+        holder.itemView.setOnClickListener(v -> {
+            if (messageClickListener != null) {
+                messageClickListener.onMessageClick(v, message);
+            }
+        });
     }
 
     public interface OnMessageLongClickListener {
         void onMessageLongClick(int position, Message message);
     }
+
+    public interface OnMessageClickListener {
+        void onMessageClick(View anchor, Message message);
+    }
+
 }

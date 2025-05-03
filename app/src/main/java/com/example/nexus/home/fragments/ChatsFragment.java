@@ -15,18 +15,24 @@
  */
 package com.example.nexus.home.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nexus.Constants;
 import com.example.nexus.adapters.OpenChatsAdapter;
 import com.example.nexus.applogger.AppLogger;
+import com.example.nexus.chat.ChatActivity;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.core.OpenChat;
 import com.example.nexus.core.User;
@@ -62,6 +68,7 @@ public class ChatsFragment extends Fragment {
     LocalUserSingleton localUserSingleton;
     @Inject
     FirebaseStorage firebaseStorage;
+    @Nullable
     private FragmentChatsBinding binding;
     private final Gson gson = new Gson();
     private OpenChatsAdapter openChatsAdapter;
@@ -75,6 +82,41 @@ public class ChatsFragment extends Fragment {
         binding.openChatsRecyclerView.setAdapter(openChatsAdapter);
 
         fetchAllUserChats();
+
+        binding.openChatsRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            final GestureDetector gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onSingleTapUp(@NonNull MotionEvent e) {
+                    return true;
+                }
+            });
+
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                View child = rv.findChildViewUnder(e.getX(), e.getY());
+                if (child != null && gestureDetector.onTouchEvent(e)) {
+                    int position = rv.getChildAdapterPosition(child);
+                    User user = openChatsAdapter.getOpenChats().get(position).getDeliverUser();
+
+                    Intent openChatIntent = new Intent(getContext(), ChatActivity.class);
+                    openChatIntent.putExtra(Constants.ChatsActivity.USER, user);
+                    startActivity(openChatIntent);
+
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
 
         return binding.getRoot();
     }
@@ -120,7 +162,7 @@ public class ChatsFragment extends Fragment {
         chatsRef.addValueEventListener(chatsListener);
     }
 
-    private void fetchLastMessage(DataSnapshot chatSnapshot, MessageCallback callback) {
+    private void fetchLastMessage(@NonNull DataSnapshot chatSnapshot, @NonNull MessageCallback callback) {
         chatSnapshot.child(Constants.FIREBASE_DATABASE.MESSAGES).getRef().orderByChild(Constants.FIREBASE_DATABASE.TIMESTAMP).limitToLast(1)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -140,7 +182,7 @@ public class ChatsFragment extends Fragment {
                 });
     }
 
-    private void fetchUser(String uid, UserCallback callback) {
+    private void fetchUser(@NonNull String uid, @NonNull UserCallback callback) {
         String cached = SharedPreferencesUtils.getDataByKey(requireContext(), "user_" + uid);
         if (cached != null) {
             callback.onUserFetched(gson.fromJson(cached, User.class));
@@ -158,7 +200,7 @@ public class ChatsFragment extends Fragment {
         }).addOnFailureListener(callback::onError);
     }
 
-    private String getOtherUid(String chatKey) {
+    private String getOtherUid(@NonNull String chatKey) {
         String[] parts = chatKey.split("_");
         return parts[0].equals(localUserSingleton.getUid()) ? parts[1] : parts[0];
     }

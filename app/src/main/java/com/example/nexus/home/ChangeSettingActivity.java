@@ -18,13 +18,18 @@ package com.example.nexus.home;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.nexus.Constants;
 import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
-import com.example.nexus.databinding.ActivityChatBinding;
+import com.example.nexus.databinding.ActivityChangeSettingBinding;
 import com.example.nexus.utils.GetTextUtils;
+import com.example.nexus.utils.SnackbarUtils;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -36,43 +41,49 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ChangeSettingActivity extends AppCompatActivity {
-    ActivityChatBinding binding;
+    private final Map<String, String> dictionary = new HashMap<>();
     @Inject
     FirebaseFirestore firestore;
+    ActivityChangeSettingBinding binding;
     @Inject
-    LocalUserSingleton localUserSingleton;
+    FirebaseAuth firebaseAuth;
     @Inject
     AppLogger logger;
-    private Map<String, String> dictionary = new HashMap<>();
+    @Inject
+    LocalUserSingleton localUserSingleton;
+    @Nullable
     private String FIELD_TO_CHANGE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityChatBinding.inflate(getLayoutInflater());
+        binding = ActivityChangeSettingBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         initializeDictionary();
 
         Intent intent = getIntent();
         FIELD_TO_CHANGE = intent.getStringExtra(Constants.ChangeSettingActivity.CHANGE_SETTING);
-        binding.textInput.setHelperText(dictionary.get(FIELD_TO_CHANGE));
-        binding.textInput.setHint(dictionary.get(FIELD_TO_CHANGE));
+        binding.FIELDINPUT.setHelperText(dictionary.get(FIELD_TO_CHANGE));
+        binding.FIELDINPUT.setHint(dictionary.get(FIELD_TO_CHANGE));
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        binding.sendButton.setOnClickListener(view -> {
-            String value = GetTextUtils.getTextFromInput(binding.textInput);
+        binding.submitButton.setOnClickListener(view -> {
+            String value = GetTextUtils.getTextFromInput(binding.FIELDINPUT);
             changeSetting(FIELD_TO_CHANGE, value, new Callback() {
                 @Override
                 public void onComplete() {
                     logger.success("Updated current user settings, see in firestore");
+                    binding.FIELDINPUT.clearFocus();
+
+                    SnackbarUtils.build(ChangeSettingActivity.this).setMessage("Updated current user settings, see in firestore").show();
                 }
 
                 @Override
-                public void onError(Exception e) {
+                public void onError(@NonNull Exception e) {
                     logger.e(e.getMessage(), e.getCause());
                 }
             });
@@ -81,10 +92,28 @@ public class ChangeSettingActivity extends AppCompatActivity {
         binding.backButton.setOnClickListener(view -> finish());
     }
 
-    private void changeSetting(String FIELD_TO_CHANGE, String VALUE, Callback callback) {
-        Map<String, Object> data = new HashMap<>();
-        data.put(FIELD_TO_CHANGE, VALUE);
+    private void changeSetting(String fieldToChange, String value, @NonNull Callback callback) {
+        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onError(new IllegalStateException("No authenticated user found."));
+            return;
+        }
 
+        Map<String, Object> data = new HashMap<>();
+        data.put(fieldToChange, value);
+
+        if (fieldToChange.equals(Constants.UserFields.PASSWORD)) {
+            currentUser.updatePassword(value).addOnCompleteListener(task -> callback.onComplete()).addOnFailureListener(callback::onError);
+
+        } else if (fieldToChange.equals(Constants.UserFields.EMAIL)) {
+            currentUser.sendEmailVerification().addOnCompleteListener(task -> updateUserField(data, callback)).addOnFailureListener(callback::onError);
+
+        } else {
+            updateUserField(data, callback);
+        }
+    }
+
+    private void updateUserField(Map<String, Object> data, @NonNull Callback callback) {
         firestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUserSingleton.getUid()).update(data)
                 .addOnCompleteListener(task -> callback.onComplete()).addOnFailureListener(callback::onError);
     }
@@ -97,7 +126,6 @@ public class ChangeSettingActivity extends AppCompatActivity {
 
     interface Callback {
         void onComplete();
-
         void onError(Exception e);
     }
 }
