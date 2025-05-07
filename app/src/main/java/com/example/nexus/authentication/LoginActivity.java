@@ -33,6 +33,8 @@ import com.example.nexus.databinding.ActivityLoginBinding;
 import com.example.nexus.home.MainHomeActivity;
 import com.example.nexus.utils.GetTextUtils;
 import com.example.nexus.utils.SharedPreferencesUtils;
+import com.example.nexus.utils.SnackbarType;
+import com.example.nexus.utils.SnackbarUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -99,7 +101,10 @@ public class LoginActivity extends AppCompatActivity {
                         logger.i("Inserted user credentials in shared preferences");
 
                         startActivity(new Intent(LoginActivity.this, MainHomeActivity.class));
-                    }, e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
+                    }, e -> {
+                        logger.e(e.getMessage(), e.getCause());
+                        SnackbarUtils.build(LoginActivity.this).setSnackbarType(SnackbarType.ERROR).setMessage(e.getMessage()).show();
+                    });
         });
 
         binding.registerButton.setOnClickListener(view -> {

@@ -27,6 +27,7 @@ import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.databinding.ActivityChangeSettingBinding;
 import com.example.nexus.utils.GetTextUtils;
+import com.example.nexus.utils.SnackbarType;
 import com.example.nexus.utils.SnackbarUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -79,7 +80,7 @@ public class ChangeSettingActivity extends AppCompatActivity {
                     logger.success("Updated current user settings, see in firestore");
                     binding.FIELDINPUT.clearFocus();
 
-                    SnackbarUtils.build(ChangeSettingActivity.this).setMessage("Updated current user settings, see in firestore").show();
+                    SnackbarUtils.build(ChangeSettingActivity.this).setSnackbarType(SnackbarType.SUCCESS).setMessage("Updated current user settings, see in firestore").show();
                 }
 
                 @Override

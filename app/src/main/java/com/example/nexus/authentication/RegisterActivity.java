@@ -39,6 +39,8 @@ import com.example.nexus.home.MainHomeActivity;
 import com.example.nexus.utils.GenerateAvatarUtils;
 import com.example.nexus.utils.GetTextUtils;
 import com.example.nexus.utils.SharedPreferencesUtils;
+import com.example.nexus.utils.SnackbarType;
+import com.example.nexus.utils.SnackbarUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -98,6 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
                         SharedPreferencesUtils.insertData(RegisterActivity.this, Constants.UserFields.EMAIL, userEmail);
                         SharedPreferencesUtils.insertData(RegisterActivity.this, Constants.UserFields.PASSWORD, userPassword);
 
+                        SnackbarUtils.build(RegisterActivity.this).setSnackbarType(SnackbarType.SUCCESS).setMessage("Registration successful!").show();
                         Intent loginActivityIntent = new Intent(RegisterActivity.this, MainHomeActivity.class);
                         startActivity(loginActivityIntent);
                     }
@@ -105,9 +108,12 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onInsertFailed(@NonNull Exception e) {
                         logger.e(e.getMessage(), e.getCause());
+                        SnackbarUtils.build(RegisterActivity.this).setSnackbarType(SnackbarType.ERROR).setMessage(e.getMessage()).show();
                     }
                 });
-            }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
+            }).addOnFailureListener(e -> {logger.e(e.getMessage(), e.getCause());
+                SnackbarUtils.build(RegisterActivity.this).setSnackbarType(SnackbarType.ERROR).setMessage(e.getMessage()).show();
+            });
         });
 
         binding.loginButton.setOnClickListener((view) -> {

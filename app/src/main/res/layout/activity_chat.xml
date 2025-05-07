@@ -139,7 +139,7 @@
                 android:text=""
                 app:backgroundTint="@color/gray_800"
                 app:cornerRadius="32dp"
-                app:icon="@drawable/microphone"
+                app:icon="@drawable/mic_01"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconSize="26dp"

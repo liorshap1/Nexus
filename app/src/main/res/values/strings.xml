@@ -67,4 +67,5 @@
     <string name="floating_image">Floating image</string>
     <string name="sign_out">Sign out</string>
     <string name="place_holder">PLACE_HOLDER</string>
+    <string name="continue_with_google">Continue with Google</string>
 </resources>

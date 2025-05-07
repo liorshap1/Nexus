@@ -19,24 +19,28 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 
 import com.example.nexus.R;
 import com.google.android.material.snackbar.Snackbar;
 
 interface ISnackUtils {
     ISnackUtils setMessage(String text);
-
+    ISnackUtils setSnackbarType(SnackbarType snackbarType);
     void show();
 }
+
 
 public class SnackbarUtils implements ISnackUtils {
     private Context context;
     private String text;
-
+    private SnackbarType snackbarType;
     private SnackbarUtils(Context context) {
         this.context = context;
     }
@@ -45,9 +49,17 @@ public class SnackbarUtils implements ISnackUtils {
         return new SnackbarUtils(context);
     }
 
+
+
     @Override
     public SnackbarUtils setMessage(String text) {
         this.text = text;
+        return this;
+    }
+
+    @Override
+    public SnackbarUtils setSnackbarType(SnackbarType snackbarType) {
+        this.snackbarType = snackbarType;
         return this;
     }
 
@@ -68,8 +80,20 @@ public class SnackbarUtils implements ISnackUtils {
         TextView message = customView.findViewById(R.id.snackbar_message);
         ImageView icon = customView.findViewById(R.id.snackbar_icon);
 
+        switch (snackbarType){
+            case SUCCESS:
+                icon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.verified_server));
+                break;
+            case ERROR:
+                icon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.error));
+                break;
+            case WARNING:
+                icon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.warning));
+                break;
+        }
+
         title.setText(text);
-        message.setText(text); // from setMessage()
+        message.setText(text);
 
         @SuppressLint("RestrictedApi")
         Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) snackbar.getView();

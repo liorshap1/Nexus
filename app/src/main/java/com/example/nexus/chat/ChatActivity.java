@@ -74,7 +74,6 @@ public class ChatActivity extends AppCompatActivity {
     AppLogger logger;
     @Inject
     LocalUserSingleton localUserSingleton;
-
     private ChatAdapter chatAdapter;
     private ActivityChatBinding binding;
     private SpeechRecognizerUtils speechRecognizerUtils;
