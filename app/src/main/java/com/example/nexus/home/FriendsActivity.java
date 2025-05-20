@@ -35,6 +35,7 @@ import com.example.nexus.core.User;
 import com.example.nexus.core.services.FetchUsersService;
 import com.example.nexus.databinding.ActivityFriendsBinding;
 import com.example.nexus.utils.GetTextUtils;
+import com.example.nexus.utils.SnackbarType;
 import com.example.nexus.utils.SnackbarUtils;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -190,7 +191,7 @@ public class FriendsActivity extends AppCompatActivity {
                     firestore.collection(Constants.Firestore.USERS_COLLECTION).document(targetUserUid)
                             .update(Constants.UserFields.PENDING_REQUESTS, pendingRequests).addOnSuccessListener(aVoid -> {
                                 logger.success("Friend request sent to: " + targetEmail);
-                                SnackbarUtils.build(FriendsActivity.this).setMessage("Sent friend request!").show();
+                                SnackbarUtils.build(FriendsActivity.this).setSnackbarType(SnackbarType.SUCCESS).setMessage("Sent friend request!").show();
                             }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
                 }).addOnFailureListener(e -> logger.e(e.getMessage(), e.getCause()));
     }

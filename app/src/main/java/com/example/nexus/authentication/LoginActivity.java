@@ -86,13 +86,12 @@ public class LoginActivity extends AppCompatActivity {
             String password = GetTextUtils.getTextFromInput(binding.passwordInput);
 
             loginDisposable = signIn(email, password).doOnSubscribe(disposable -> binding.progressBar.setVisibility(VISIBLE))
-                    .observeOn(AndroidSchedulers.mainThread()).doOnSuccess(uid -> localUserSingleton.setUid(uid)).flatMap(this::fetchUser)
-                    .subscribe(docSnap -> {
-                        localUserSingleton.initializeLocalUserSingleton(docSnap.getString(Constants.UserFields.FIRST_NAME),
-                                docSnap.getString(Constants.UserFields.SECOND_NAME), docSnap.getString(Constants.UserFields.EMAIL),
-                                docSnap.getString(Constants.UserFields.PROFILE_PICTURE), localUserSingleton.getUid(),
-                                (ArrayList<String>) docSnap.get(Constants.UserFields.FRIENDS));
+                    .observeOn(AndroidSchedulers.mainThread()).doOnSuccess(uid -> localUserSingleton.setUid(uid)).flatMap(this::fetchUser).subscribe(doc -> {
+                        localUserSingleton.initializeLocalUserSingleton(localUserSingleton.getUid(), doc.getString(Constants.UserFields.FIRST_NAME),
+                                doc.getString(Constants.UserFields.SECOND_NAME), doc.getString(Constants.UserFields.EMAIL),
+                                doc.getString(Constants.UserFields.PROFILE_PICTURE), (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
 
+                        logger.i(localUserSingleton.toString());
                         startService(fetchUsersServiceIntent);
                         logger.success("Started Fetching Service, LoginActivity");
 
@@ -126,8 +125,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     protected Single<DocumentSnapshot> fetchUser(@NonNull String uid) {
-        return Single.create(emitter -> FirebaseFirestore.getInstance().collection("users").document(uid).get().addOnSuccessListener(emitter::onSuccess)
-                .addOnFailureListener(emitter::onError));
+        return Single.create(emitter -> FirebaseFirestore.getInstance().collection(Constants.Firestore.USERS_COLLECTION).document(uid).get()
+                .addOnSuccessListener(emitter::onSuccess).addOnFailureListener(emitter::onError));
     }
 
     @Override

@@ -51,6 +51,7 @@ import com.example.nexus.core.services.NotificationsService;
 import com.example.nexus.databinding.ActivityMainHomeBinding;
 import com.example.nexus.home.fragments.ChatsFragment;
 import com.example.nexus.home.fragments.MenuFragment;
+import com.example.nexus.utils.SharedPreferencesUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -127,6 +128,7 @@ public class MainHomeActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull List<String> chatIds) {
                 Intent serviceIntent = new Intent(MainHomeActivity.this, NotificationsService.class);
+                logger.d(String.valueOf(chatIds));
                 serviceIntent.putStringArrayListExtra(Constants.FIREBASE_DATABASE.CHATS, new ArrayList<>(chatIds));
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -154,6 +156,8 @@ public class MainHomeActivity extends AppCompatActivity {
 
         Intent serviceIntent = new Intent(this, FetchUsersService.class);
         bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
+
+        SharedPreferencesUtils.insertData(getApplicationContext(), Constants.CURRENT_CHAT, "none");
 
         binding.suggestedRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
             final GestureDetector gestureDetector = new GestureDetector(MainHomeActivity.this, new GestureDetector.SimpleOnGestureListener() {

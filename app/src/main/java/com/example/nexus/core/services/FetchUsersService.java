@@ -28,13 +28,16 @@ import com.example.nexus.applogger.AppLogger;
 import com.example.nexus.core.LocalUserSingleton;
 import com.example.nexus.core.User;
 import com.example.nexus.utils.SharedPreferencesUtils;
+import com.google.android.play.core.integrity.model.IntegrityErrorCode;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
 
 import javax.inject.Inject;
@@ -44,80 +47,66 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 @AndroidEntryPoint
 public class FetchUsersService extends Service {
-    private final IBinder binder = new LocalBinder();
-    private final Gson gson = new Gson();
-    private final List<User> fetchedUsersList = new ArrayList<>();
-    private final BehaviorSubject<List<User>> usersSubject = BehaviorSubject.createDefault(Collections.emptyList());
+    private final IBinder serviceBinder = new LocalBinder();
+    private final Gson jsonParser = new Gson();
+    private final List<User> cachedUsers = new ArrayList<>();
+    private final BehaviorSubject<List<User>> usersStream = BehaviorSubject.createDefault(Collections.emptyList());
 
     @Inject
     AppLogger logger;
-
     @Inject
     LocalUserSingleton localUserSingleton;
-
     @Inject
-    FirebaseFirestore firestore;
+    FirebaseFirestore firebaseFirestore;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        logger.success("FetchUsersService created");
+
+        logger.success("Created successfully");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // Validate UID before proceeding
-        String uid = localUserSingleton.getUid();
-        if (uid.isEmpty()) {
-            logger.i("UID is null or empty! Cannot fetch friends.");
-            stopSelf();
-            return START_NOT_STICKY;
+        String localUserUid = localUserSingleton.getUid();
+        if (!localUserUid.isEmpty()) {
+            startFetchingUsers();
         }
-
-        logger.success("FetchUsersService started for UID: " + uid);
-        fetchConnectedUserFriends(uid);
-        return START_STICKY;
+        return super.onStartCommand(intent, flags, startId);
     }
 
-    private void fetchConnectedUserFriends(@NonNull String uid) {
-        // Ensure the USERS_COLLECTION constant has no trailing slash
-        String collection = Constants.Firestore.USERS_COLLECTION;
+    private void startFetchingUsers() {
+        firebaseFirestore.collection(Constants.Firestore.USERS_COLLECTION).document(localUserSingleton.getUid())
+                .addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if (error != null) {
+                            logger.e(error.getMessage(), error.getCause());
+                        }
+                        cachedUsers.clear();
 
-        firestore.collection(collection).document(uid).addSnapshotListener((value, error) -> {
-            if (error != null) {
-                logger.e(error.getMessage(), error);
-                return;
-            }
-
-            fetchedUsersList.clear();
-
-            if (value != null && value.exists()) {
-                List<String> currentFriendsList = (List<String>) value.get(Constants.UserFields.FRIENDS);
-                if (currentFriendsList != null && !currentFriendsList.isEmpty()) {
-                    logger.i("Friends: " + currentFriendsList);
-                    for (String friendUid : currentFriendsList) {
-                        fetchSingleUser(friendUid);
+                        if (value != null && value.exists()) {
+                            List<String> currentFriendsList = (List<String>) value.get(Constants.UserFields.FRIENDS);
+                            if (currentFriendsList != null && !currentFriendsList.isEmpty()) {
+                                for (String friendUid : currentFriendsList) {
+                                    fetchSingleUser(friendUid);
+                                }
+                            } else {
+                                logger.i("Empty or null friends list");
+                                usersStream.onNext(new ArrayList<>());
+                            }
+                        } else {
+                            logger.w("User document doesn't exist or is null");
+                            usersStream.onNext(new ArrayList<>());
+                        }
                     }
-                } else {
-                    logger.i("Empty or null friends list");
-                    usersSubject.onNext(new ArrayList<>());
-                }
-            } else {
-                logger.w("User document doesn't exist or is null");
-                usersSubject.onNext(new ArrayList<>());
-            }
-        });
+                });
     }
 
-    private void fetchSingleUser(@Nullable String uid) {
-        if (uid == null || uid.isEmpty()) {
-            logger.v("Friend UID is null or empty, skipping fetch.");
-            return;
-        }
-
-        String cached = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + uid);
+    private void fetchSingleUser(String userUid) {
+        String cached = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + userUid);
         if (cached == null) {
-            firestore.collection(Constants.Firestore.USERS_COLLECTION).document(uid).get().addOnCompleteListener(task -> {
+            firebaseFirestore.collection(Constants.Firestore.USERS_COLLECTION).document(userUid).get().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     DocumentSnapshot docSnap = task.getResult();
                     if (docSnap != null && docSnap.exists()) {
@@ -127,40 +116,41 @@ public class FetchUsersService extends Service {
                         String pic = docSnap.getString(Constants.UserFields.PROFILE_PICTURE);
 
                         if (first != null && last != null && email != null) {
-                            User user = new User(uid, first, last, email, pic);
-                            fetchedUsersList.add(user);
-                            SharedPreferencesUtils.insertData(getApplicationContext(), "user_" + uid, gson.toJson(user));
-                            logger.success("Fetched and cached user: " + uid);
-                            usersSubject.onNext(new ArrayList<>(fetchedUsersList));
+                            User user = new User(userUid, first, last, email, pic);
+                            cachedUsers.add(user);
+                            SharedPreferencesUtils.insertData(getApplicationContext(), "user_" + userUid, jsonParser.toJson(user));
+                            logger.success("Fetched and cached user: " + userUid);
+                            usersStream.onNext(new ArrayList<>(cachedUsers));
                         } else {
-                            logger.w("Incomplete data for UID: " + uid);
+                            logger.w("Incomplete data for UID: " + userUid);
                         }
                     } else {
-                        logger.w("User document doesn't exist for UID: " + uid);
+                        logger.w("User document doesn't exist for UID: " + userUid);
                     }
                 } else {
                     logger.e(Objects.requireNonNull(task.getException()).getMessage(), task.getException());
                 }
+            }).addOnFailureListener(error -> {
+                logger.e(error.getMessage(), error.getCause());
             });
         } else {
-            User user = gson.fromJson(cached, User.class);
-            fetchedUsersList.add(user);
-            usersSubject.onNext(new ArrayList<>(fetchedUsersList));
-            logger.success("Retrieved user from SharedPreferences: " + uid);
+            User user = jsonParser.fromJson(cached, User.class);
+            cachedUsers.add(user);
+            usersStream.onNext(new ArrayList<>(cachedUsers));
+            logger.success("Retrieved user from SharedPreferences: " + userUid);
         }
     }
 
     @NonNull
     public BehaviorSubject<List<User>> observeCurrentUsers() {
-        return usersSubject;
+        return usersStream;
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return binder;
+        return serviceBinder;
     }
-
     public class LocalBinder extends Binder {
         @NonNull
         public FetchUsersService getService() {

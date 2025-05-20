@@ -49,6 +49,7 @@ public class Constants {
         public static final String DELIVER_NAME = "deliver_name";
         public static final String TIMESTAMP = "timestamp";
         public static final String REACTIONS = "reactions";
+        public static final String MESSAGE_KEY = "message_key";
     }
 
     public static class ChatsActivity {

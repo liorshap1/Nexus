@@ -36,7 +36,6 @@ interface ISnackUtils {
     void show();
 }
 
-
 public class SnackbarUtils implements ISnackUtils {
     private Context context;
     private String text;
@@ -48,8 +47,6 @@ public class SnackbarUtils implements ISnackUtils {
     public static SnackbarUtils build(Context context) {
         return new SnackbarUtils(context);
     }
-
-
 
     @Override
     public SnackbarUtils setMessage(String text) {
@@ -80,14 +77,14 @@ public class SnackbarUtils implements ISnackUtils {
         TextView message = customView.findViewById(R.id.snackbar_message);
         ImageView icon = customView.findViewById(R.id.snackbar_icon);
 
-        switch (snackbarType){
-            case SUCCESS:
+        switch (snackbarType) {
+            case SUCCESS :
                 icon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.verified_server));
                 break;
-            case ERROR:
+            case ERROR :
                 icon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.error));
                 break;
-            case WARNING:
+            case WARNING :
                 icon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.warning));
                 break;
         }

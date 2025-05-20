@@ -82,12 +82,18 @@ public class NotificationsService extends Service {
 
         startForeground(FOREGROUND_NOTIFICATION_ID, foregroundBuilder.build());
 
-        ArrayList<String> chatsIds = intent.getStringArrayListExtra(Constants.FIREBASE_DATABASE.CHATS);
-        logger.d(String.valueOf(chatsIds));
-        if (chatsIds != null && !chatsIds.isEmpty()) {
-            for (String chatId : chatsIds) {
-                logger.w(chatId);
-                startServiceListener(chatId);
+        if (intent != null) {
+            if (intent.hasExtra(Constants.FIREBASE_DATABASE.CHATS)) {
+                ArrayList<String> chatsIds = intent.getStringArrayListExtra(Constants.FIREBASE_DATABASE.CHATS);
+                logger.d(String.valueOf(chatsIds));
+                if (chatsIds != null && !chatsIds.isEmpty()) {
+                    for (String chatId : chatsIds) {
+                        logger.w(chatId);
+                        startServiceListener(chatId);
+                    }
+                }
+            } else {
+                logger.d("Intent is null");
             }
         }
 
@@ -112,25 +118,40 @@ public class NotificationsService extends Service {
     }
 
     private void createNotification(@NonNull Message message) {
-        var sensitizedUserJson = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + message.getMessageDeliverUid());
-        User user = gson.fromJson(sensitizedUserJson, User.class);
+        String deliverUid = message.getMessageDeliverUid();
+        if (deliverUid == null) {
+            logger.i("Message deliver UID is null — cannot show notification");
+            return;
+        }
+
+        String userJson = SharedPreferencesUtils.getDataByKey(getApplicationContext(), "user_" + deliverUid);
+        if (userJson == null) {
+            logger.i("User data not found in SharedPreferences for UID: " + deliverUid);
+            return;
+        }
+
+        User user = gson.fromJson(userJson, User.class);
+        if (user == null || user.getFullName() == null) {
+            logger.i("User object is null or incomplete — UID: " + deliverUid);
+            return;
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Constants.CHAT_CHANNEL_ID).setContentTitle(user.getFullName())
                 .setContentText("Sent: " + message.getText()).setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true)
                 .setSmallIcon(R.drawable.gradient_button);
 
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(getApplicationContext(),
                     android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                Log.e("ChatNotificationService", "POST_NOTIFICATIONS permission not granted");
+                logger.i("POST_NOTIFICATIONS permission not granted");
                 return;
             }
         }
 
         notificationManagerCompat.notify(NOTIFICATION_ID, builder.build());
     }
-
     private void startServiceListener(@NonNull String chatId) {
         messagesRef = firebaseDatabase.getReference(Constants.FIREBASE_DATABASE.CHATS).child(chatId).child(Constants.FIREBASE_DATABASE.MESSAGES);
 
@@ -138,35 +159,58 @@ public class NotificationsService extends Service {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 String currentChatId = SharedPreferencesUtils.getDataByKey(getApplicationContext(), Constants.CURRENT_CHAT);
-                if (!currentChatId.equals(chatId)) {
+                logger.v("Current chat in foreground: " + currentChatId);
+                logger.v("Incoming chatId: " + chatId);
+
+                if (currentChatId == null || !currentChatId.equals(chatId)) {
+                    logger.v("Creating notification for chatId: " + chatId);
+
                     String senderUid = snapshot.child(Constants.MessageFields.DELIVER_UID).getValue(String.class);
-                    if (senderUid != null && !senderUid.equals(firebaseAuth.getCurrentUser().getUid())) {
-                        String message = snapshot.child(Constants.MessageFields.MESSAGE).getValue(String.class);
-                        // createNotification(new Message(message, 0, null, senderUid));
+                    logger.d("Sender UID: " + senderUid);
+
+                    if (senderUid == null) {
+                        logger.i("Sender UID is null — skipping notification");
+                        return;
                     }
+
+                    String currentUserUid = firebaseAuth.getCurrentUser() != null ? firebaseAuth.getCurrentUser().getUid() : null;
+                    if (currentUserUid == null) {
+                        logger.i("Current user is null — cannot check sender");
+                        return;
+                    }
+
+                    if (!senderUid.equals(currentUserUid)) {
+                        String messageText = snapshot.child(Constants.MessageFields.MESSAGE).getValue(String.class);
+                        if (messageText == null) {
+                            logger.i("Message text is null — skipping notification");
+                            return;
+                        }
+
+                        Message message = new Message(messageText, 0, null, senderUid, null, null);
+                        createNotification(message);
+                    }
+                } else {
+                    logger.v("Message is from currently open chat — no notification needed");
                 }
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             }
-
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
             }
-
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                logger.e("Listener cancelled for chatId: " + chatId, error.toException());
             }
         };
 
         messagesRef.addChildEventListener(messageListener);
     }
-
     @Override
     public void onDestroy() {
         super.onDestroy();

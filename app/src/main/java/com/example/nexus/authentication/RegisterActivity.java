@@ -111,7 +111,8 @@ public class RegisterActivity extends AppCompatActivity {
                         SnackbarUtils.build(RegisterActivity.this).setSnackbarType(SnackbarType.ERROR).setMessage(e.getMessage()).show();
                     }
                 });
-            }).addOnFailureListener(e -> {logger.e(e.getMessage(), e.getCause());
+            }).addOnFailureListener(e -> {
+                logger.e(e.getMessage(), e.getCause());
                 SnackbarUtils.build(RegisterActivity.this).setSnackbarType(SnackbarType.ERROR).setMessage(e.getMessage()).show();
             });
         });

@@ -80,7 +80,8 @@ public class ChangeSettingActivity extends AppCompatActivity {
                     logger.success("Updated current user settings, see in firestore");
                     binding.FIELDINPUT.clearFocus();
 
-                    SnackbarUtils.build(ChangeSettingActivity.this).setSnackbarType(SnackbarType.SUCCESS).setMessage("Updated current user settings, see in firestore").show();
+                    SnackbarUtils.build(ChangeSettingActivity.this).setSnackbarType(SnackbarType.SUCCESS)
+                            .setMessage("Updated current user settings, see in firestore").show();
                 }
 
                 @Override

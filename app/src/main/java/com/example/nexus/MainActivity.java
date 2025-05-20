@@ -93,9 +93,6 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        firebaseFirestore = FirebaseFirestore.getInstance();
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 askApplicationPermissions();
@@ -119,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
                                 doc.getString(Constants.UserFields.SECOND_NAME), doc.getString(Constants.UserFields.EMAIL),
                                 doc.getString(Constants.UserFields.PROFILE_PICTURE), (ArrayList<String>) doc.get(Constants.UserFields.FRIENDS));
 
-                        logger.v(localUserSingleton.toString());
                         startService(fetchUsersServiceIntent);
                         startActivity(new Intent(MainActivity.this, MainHomeActivity.class));
                     });

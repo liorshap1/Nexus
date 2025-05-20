@@ -23,13 +23,19 @@ public class Message {
     private long timestamp;
     private MessageType messageType;
     private Map<String, String> reactions;
+    private String messageKey;
 
-    public Message(String text, long timestamp, MessageType messageType, String messageDeliverUid, Map<String, String> reactions) {
+    public Message(String text, long timestamp, MessageType messageType, String messageDeliverUid, Map<String, String> reactions, String messageKey) {
         this.text = text;
         this.timestamp = timestamp;
         this.messageType = messageType;
         this.messageDeliverUid = messageDeliverUid;
         this.reactions = reactions;
+        this.messageKey = messageKey;
+    }
+
+    public String getMessageKey() {
+        return messageKey;
     }
 
     public String getText() {
